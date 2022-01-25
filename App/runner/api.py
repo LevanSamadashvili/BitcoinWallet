@@ -1,22 +1,48 @@
-from fastapi import FastAPI
+from typing import Any
+
+from fastapi import Body, Depends, FastAPI, Response
+
+from App.core import status
+from App.core.bitcoin_core import BitcoinCore
+from App.core.requests import RegisterUserRequest
+from App.core.responses import CreateWalletResponse, RegisterUserResponse
 
 app = FastAPI()
 
 
-@app.post("/users")
-def register_user(body: dict[str, str]) -> dict[str, str]:
+def validate_api_key(body: dict[str, Any]) -> bool:
+    return "api_key" in body
+
+
+def get_core() -> BitcoinCore:
+    return BitcoinCore()
+
+
+@app.post(
+    "/users",
+    responses={
+        status.USER_REGISTRATION_ERROR: {"description": "User registration error"},
+        status.USER_CREATED_SUCCESSFULLY: {"description": "User created successfully"},
+    },
+)
+def register_user(
+    response: Response, bitcoin_core: BitcoinCore = Depends(get_core)
+) -> RegisterUserResponse:
     """
     - Registers user
     - Returns API key that can authenticate all subsequent requests for this user
     """
 
-    print(body["id"])
-
-    return {"key": "asfa"}
+    register_user_response = bitcoin_core.register_user(RegisterUserRequest())
+    response.status_code = register_user_response.status_code
+    return register_user_response
 
 
 @app.post("/wallets")
-def create_wallet(body: dict[str, str]) -> dict[str, str]:
+def create_wallet(
+    body: dict[str, Any] = Body(..., example={"api_key": "120341024"}),
+    bitcoin_core: BitcoinCore = Depends(get_core),
+) -> CreateWalletResponse:
     """
      - Requires API key
      - Create BTC wallet
@@ -26,11 +52,16 @@ def create_wallet(body: dict[str, str]) -> dict[str, str]:
      - Returns wallet address and balance in BTC and USD
     """
 
-    return {}
+    # response = bitcoin_core.create_wallet(CreateWalletRequest(api_key=api_key))
+    return CreateWalletResponse(
+        "Bad Request, Order_Complete_At missing", 0.5, 0.5, status_code=400
+    )
 
 
 @app.get("/wallets/{address}")
-def get_balance(body: dict[str, str], address: str) -> dict[str, str]:
+def get_balance(
+    body: dict[str, Any], address: str, bitcoin_core: BitcoinCore = Depends(get_core)
+) -> dict[str, str]:
     """
     - Requires API key
     - Returns wallet address and balance in BTC and USD
@@ -40,7 +71,9 @@ def get_balance(body: dict[str, str], address: str) -> dict[str, str]:
 
 
 @app.post("/transactions")
-def make_transaction(body: dict[str, str]) -> dict[str, str]:
+def make_transaction(
+    body: dict[str, Any], bitcoin_core: BitcoinCore = Depends(get_core)
+) -> dict[str, str]:
     """
     - Requires API key
     - Makes a transaction from one wallet to another
@@ -53,7 +86,9 @@ def make_transaction(body: dict[str, str]) -> dict[str, str]:
 
 
 @app.get("/transactions")
-def get_transactions(body: dict[str, str]) -> dict[str, str]:
+def get_transactions(
+    body: dict[str, Any], bitcoin_core: BitcoinCore = Depends(get_core)
+) -> dict[str, str]:
     """
     - Requires API key
     - Returns list of transactions
@@ -63,7 +98,9 @@ def get_transactions(body: dict[str, str]) -> dict[str, str]:
 
 
 @app.get("/wallets/{address}/transactions")
-def get_wallet_transactions(body: dict[str, str], address: str) -> dict[str, str]:
+def get_wallet_transactions(
+    body: dict[str, Any], address: str, bitcoin_core: BitcoinCore = Depends(get_core)
+) -> dict[str, str]:
     """
     - Requires API key
     - returns transactions related to the wallet
@@ -73,7 +110,9 @@ def get_wallet_transactions(body: dict[str, str], address: str) -> dict[str, str
 
 
 @app.get("/statistics")
-def get_statistics(body: dict[str, str]) -> dict[str, str]:
+def get_statistics(
+    body: dict[str, Any], bitcoin_core: BitcoinCore = Depends(get_core)
+) -> dict[str, str]:
     """
     - Requires pre-set (hard coded) Admin API key
     - Returns the total number of transactions and platform profit
