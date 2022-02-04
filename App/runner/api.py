@@ -1,7 +1,12 @@
 from fastapi import Depends, FastAPI, Response
 
 from App.core import status
-from App.core.bitcoin_core import BitcoinCore
+from App.core.bitcoin_core import (
+    BitcoinCore,
+    default_address_generator,
+    default_api_key_generator,
+    default_btc_usd_convertor,
+)
 from App.core.requests import (
     CreateWalletRequest,
     GetBalanceRequest,
@@ -20,12 +25,26 @@ from App.core.responses import (
     MakeTransactionResponse,
     RegisterUserResponse,
 )
+from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
+from App.infra.repositories.transactions_repository import (
+    InMemoryTransactionsRepository,
+)
+from App.infra.repositories.user_repository import InMemoryUserRepository
+from App.infra.repositories.wallet_repository import InMemoryWalletRepository
 
 app = FastAPI()
 
 
 def get_core() -> BitcoinCore:
-    return BitcoinCore()
+    return BitcoinCore(
+        user_repository=InMemoryUserRepository(),
+        wallet_repository=InMemoryWalletRepository(),
+        transactions_repository=InMemoryTransactionsRepository(),
+        statistics_repository=InMemoryStatisticsRepository(),
+        api_key_generator_strategy=default_api_key_generator,
+        address_generator_strategy=default_address_generator,
+        btc_usd_convertor=default_btc_usd_convertor,
+    )
 
 
 @app.post(
@@ -36,21 +55,32 @@ def get_core() -> BitcoinCore:
     },
 )
 def register_user(
-    response: Response, bitcoin_core: BitcoinCore = Depends(get_core)
+    response: Response,
+    first_name: str,
+    last_name: str,
+    bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> RegisterUserResponse:
     """
     - Registers user
     - Returns API key that can authenticate all subsequent requests for this user
     """
 
-    register_user_response = bitcoin_core.register_user(RegisterUserRequest())
+    register_user_response = bitcoin_core.register_user(
+        RegisterUserRequest(first_name=first_name, last_name=last_name)
+    )
     response.status_code = register_user_response.status_code
     return register_user_response
 
 
 @app.post(
     "/wallets",
-    responses={status.NO_API_KEY: {"description": "API Key is not provided"}},
+    responses={
+        status.INCORRECT_API_KEY: {"description": "Incorrect API key"},
+        status.WALLET_CREATION_ERROR: {"description": "Wallet creation error"},
+        status.WALLET_CREATED_SUCCESSFULLY: {
+            "description": "Wallet created successfully"
+        },
+    },
 )
 def create_wallet(
     response: Response,
