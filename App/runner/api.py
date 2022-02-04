@@ -1,17 +1,27 @@
-from typing import Any
-
-from fastapi import Body, Depends, FastAPI, Response
+from fastapi import Depends, FastAPI, Response
 
 from App.core import status
 from App.core.bitcoin_core import BitcoinCore
-from App.core.requests import RegisterUserRequest
-from App.core.responses import CreateWalletResponse, RegisterUserResponse
+from App.core.requests import (
+    CreateWalletRequest,
+    GetBalanceRequest,
+    GetStatisticsRequest,
+    GetTransactionsRequest,
+    GetWalletTransactionsRequest,
+    MakeTransactionRequest,
+    RegisterUserRequest,
+)
+from App.core.responses import (
+    CreateWalletResponse,
+    GetBalanceResponse,
+    GetStatisticsResponse,
+    GetTransactionsResponse,
+    GetWalletTransactionsResponse,
+    MakeTransactionResponse,
+    RegisterUserResponse,
+)
 
 app = FastAPI()
-
-
-def validate_api_key(body: dict[str, Any]) -> bool:
-    return "api_key" in body
 
 
 def get_core() -> BitcoinCore:
@@ -38,9 +48,13 @@ def register_user(
     return register_user_response
 
 
-@app.post("/wallets")
+@app.post(
+    "/wallets",
+    responses={status.NO_API_KEY: {"description": "API Key is not provided"}},
+)
 def create_wallet(
-    body: dict[str, Any] = Body(..., example={"api_key": "120341024"}),
+    response: Response,
+    api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> CreateWalletResponse:
     """
@@ -52,28 +66,41 @@ def create_wallet(
      - Returns wallet address and balance in BTC and USD
     """
 
-    # response = bitcoin_core.create_wallet(CreateWalletRequest(api_key=api_key))
-    return CreateWalletResponse(
-        "Bad Request, Order_Complete_At missing", 0.5, 0.5, status_code=400
+    create_wallet_response = bitcoin_core.create_wallet(
+        CreateWalletRequest(api_key=api_key)
     )
+    response.status_code = create_wallet_response.status_code
+    return create_wallet_response
 
 
 @app.get("/wallets/{address}")
 def get_balance(
-    body: dict[str, Any], address: str, bitcoin_core: BitcoinCore = Depends(get_core)
-) -> dict[str, str]:
+    response: Response,
+    address: str,
+    api_key: str,
+    bitcoin_core: BitcoinCore = Depends(get_core),
+) -> GetBalanceResponse:
     """
     - Requires API key
     - Returns wallet address and balance in BTC and USD
     """
 
-    return {}
+    get_balance_response = bitcoin_core.get_balance(
+        GetBalanceRequest(api_key=api_key, address=address)
+    )
+    response.status_code = get_balance_response.status_code
+    return get_balance_response
 
 
 @app.post("/transactions")
 def make_transaction(
-    body: dict[str, Any], bitcoin_core: BitcoinCore = Depends(get_core)
-) -> dict[str, str]:
+    response: Response,
+    api_key: str,
+    first_wallet_address: str,
+    second_wallet_address: str,
+    btc_amount: float,
+    bitcoin_core: BitcoinCore = Depends(get_core),
+) -> MakeTransactionResponse:
     """
     - Requires API key
     - Makes a transaction from one wallet to another
@@ -82,40 +109,67 @@ def make_transaction(
     to the foreign wallets
     """
 
-    return {}
+    make_transaction_response = bitcoin_core.make_transaction(
+        MakeTransactionRequest(
+            api_key=api_key,
+            first_wallet_address=first_wallet_address,
+            second_wallet_address=second_wallet_address,
+            btc_amount=btc_amount,
+        )
+    )
+    response.status_code = make_transaction_response.status_code
+    return make_transaction_response
 
 
 @app.get("/transactions")
 def get_transactions(
-    body: dict[str, Any], bitcoin_core: BitcoinCore = Depends(get_core)
-) -> dict[str, str]:
+    response: Response, api_key: str, bitcoin_core: BitcoinCore = Depends(get_core)
+) -> GetTransactionsResponse:
     """
     - Requires API key
     - Returns list of transactions
     """
 
-    return {}
+    get_transactions_response = bitcoin_core.get_transactions(
+        GetTransactionsRequest(api_key=api_key)
+    )
+    response.status_code = get_transactions_response.status_code
+    return get_transactions_response
 
 
 @app.get("/wallets/{address}/transactions")
 def get_wallet_transactions(
-    body: dict[str, Any], address: str, bitcoin_core: BitcoinCore = Depends(get_core)
-) -> dict[str, str]:
+    response: Response,
+    api_key: str,
+    address: str,
+    bitcoin_core: BitcoinCore = Depends(get_core),
+) -> GetWalletTransactionsResponse:
     """
     - Requires API key
     - returns transactions related to the wallet
     """
 
-    return {}
+    get_wallet_transactions_response = bitcoin_core.get_wallet_transactions(
+        GetWalletTransactionsRequest(api_key=api_key, address=address)
+    )
+
+    response.status_code = get_wallet_transactions_response.status_code
+    return get_wallet_transactions_response
 
 
 @app.get("/statistics")
 def get_statistics(
-    body: dict[str, Any], bitcoin_core: BitcoinCore = Depends(get_core)
-) -> dict[str, str]:
+    response: Response,
+    admin_api_key: str,
+    bitcoin_core: BitcoinCore = Depends(get_core),
+) -> GetStatisticsResponse:
     """
     - Requires pre-set (hard coded) Admin API key
     - Returns the total number of transactions and platform profit
     """
 
-    return {}
+    get_statistics_response = bitcoin_core.get_statistics(
+        GetStatisticsRequest(api_key=admin_api_key)
+    )
+    response.status_code = get_statistics_response.status_code
+    return get_statistics_response
