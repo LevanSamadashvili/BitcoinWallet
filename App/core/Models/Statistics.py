@@ -3,4 +3,5 @@ from dataclasses import dataclass
 
 @dataclass
 class Statistics:
-    pass
+    num_transactions: int
+    profit: float

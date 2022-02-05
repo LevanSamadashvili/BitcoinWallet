@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Union
 
 from App.core import status
+from App.core.repository_interfaces.admin_repository import IAdminRepository
 from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
 from App.core.repository_interfaces.transactions_repository import (
     ITransactionsRepository,
@@ -45,6 +46,7 @@ def default_btc_usd_convertor(btc_amount: float) -> float:
 @dataclass
 class BitcoinCore:
     user_repository: IUserRepository
+    admin_repository: IAdminRepository
     wallet_repository: IWalletRepository
     transactions_repository: ITransactionsRepository
     statistics_repository: IStatisticsRepository
@@ -159,6 +161,8 @@ class BitcoinCore:
         if not first_successful or not second_successful:
             return MakeTransactionResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
 
+        self.transactions_repository.add_transaction(request.first_wallet_address,
+                                                     request.second_wallet_address, request.btc_amount)
         return MakeTransactionResponse(status_code=status.TRANSACTION_SUCCESSFUL)
 
     def get_transactions(
@@ -190,7 +194,7 @@ class BitcoinCore:
         statistics = self.statistics_repository.get_statistics()
 
         key = request.api_key
-        if not self.user_repository.is_admin(key):
+        if not self.admin_repository.is_admin(key):
             return GetStatisticsResponse(
                 status_code=status.INCORRECT_API_KEY, total_num_transactions=0, platform_profit=0.0
             )

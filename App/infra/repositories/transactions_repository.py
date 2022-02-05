@@ -7,7 +7,7 @@ from App.core.repository_interfaces.transactions_repository import (
 
 
 class InMemoryTransactionsRepository(ITransactionsRepository):
-    transactions: list[Transaction]
+    transactions: list[Transaction] = list()
 
     def add_transaction(self, first_address: str, second_address: str, amount: float) -> bool:
         self.transactions.append(Transaction(first_address=first_address, second_address=second_address, amount=amount))

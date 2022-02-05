@@ -5,7 +5,7 @@ from App.core.repository_interfaces.wallet_repository import IWalletRepository
 
 
 class InMemoryWalletRepository(IWalletRepository):
-    wallets: dict[str, Wallet]
+    wallets: dict[str, Wallet] = dict()
 
     def create_wallet(self, address: str, api_key: str) -> bool:
         self.wallets[address] = (Wallet(address=address, api_key=api_key, balance_btc=0.0))

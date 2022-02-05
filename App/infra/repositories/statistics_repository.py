@@ -5,7 +5,7 @@ from App.core.repository_interfaces.statistics_repository import IStatisticsRepo
 
 
 class InMemoryStatisticsRepository(IStatisticsRepository):
-    statistics: Statistics
+    statistics: Statistics = Statistics(num_transactions=0, profit=0.0)
 
     def get_statistics(self) -> Optional[Statistics]:
         return self.statistics

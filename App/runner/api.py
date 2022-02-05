@@ -25,6 +25,7 @@ from App.core.responses import (
     MakeTransactionResponse,
     RegisterUserResponse,
 )
+from App.infra.repositories.admin_repository import InMemoryAdminRepository
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
     InMemoryTransactionsRepository,
@@ -44,6 +45,7 @@ def get_core() -> BitcoinCore:
         api_key_generator_strategy=default_api_key_generator,
         address_generator_strategy=default_address_generator,
         btc_usd_convertor=default_btc_usd_convertor,
+        admin_repository=InMemoryAdminRepository(api_key="1")
     )
 
 

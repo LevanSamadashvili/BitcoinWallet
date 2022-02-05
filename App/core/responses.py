@@ -35,7 +35,6 @@ class GetTransactionsResponse(Response):
     transactions: list[Transaction]
 
 
-
 @dataclass
 class MakeTransactionResponse(Response):
     pass
