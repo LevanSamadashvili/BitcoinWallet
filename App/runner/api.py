@@ -66,7 +66,7 @@ def register_user(
     """
 
     register_user_response = bitcoin_core.register_user(
-        RegisterUserRequest(first_name=first_name, last_name=last_name)
+        RegisterUserRequest()
     )
     response.status_code = register_user_response.status_code
     return register_user_response

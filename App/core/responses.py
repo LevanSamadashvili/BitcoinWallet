@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from App.core.Models.transaction import Transaction
+
 
 @dataclass
 class Response:
@@ -30,9 +32,8 @@ class GetBalanceResponse(Response, WalletParametersResponse):
 
 @dataclass
 class GetTransactionsResponse(Response):
-    # TODO: LIST OF TRANSACTIONS
-    # transactions: list[Transaction]
-    pass
+    transactions: list[Transaction]
+
 
 
 @dataclass
@@ -42,7 +43,7 @@ class MakeTransactionResponse(Response):
 
 @dataclass
 class GetWalletTransactionsResponse(GetTransactionsResponse):
-    pass
+    transactions: list[Transaction]
 
 
 @dataclass

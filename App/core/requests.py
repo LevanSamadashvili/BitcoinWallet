@@ -3,9 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class RegisterUserRequest:
-    first_name: str
-    last_name: str
-
+    pass
 
 @dataclass
 class ApiKeyRequest:

@@ -1,5 +1,8 @@
-from typing import Protocol
+from typing import Protocol, Optional
+
+from App.core.Models.Statistics import Statistics
 
 
 class IStatisticsRepository(Protocol):
-    pass
+    def get_statistics(self) -> Optional[Statistics]:
+        pass
