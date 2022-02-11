@@ -15,13 +15,16 @@ class ApiKeyRequest:
 class AddressRequest:
     address: str
 
+
 @dataclass
 class BtcAmountRequest:
     btc_amount: float
 
+
 @dataclass
 class AmountAddressRequest(AddressRequest, BtcAmountRequest):
     pass
+
 
 @dataclass
 class CreateWalletRequest(ApiKeyRequest):

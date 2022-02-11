@@ -16,15 +16,18 @@ from App.core.core_responses import (
     GetStatisticsResponse,
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
-    MakeTransactionResponse,
 )
 from App.core.handlers import (
+    CreateUserHandler,
     CreateWalletHandler,
     GetWalletHandler,
     HasUserHandler,
+    HasWalletHandler,
+    MakeTransactionHandler,
     MaxWalletsHandler,
-    NoHandler, CreateUserHandler, HasWalletHandler, TransactionValidationHandler, MakeTransactionHandler,
+    NoHandler,
     SaveTransactionHandler,
+    TransactionValidationHandler,
 )
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
@@ -45,6 +48,14 @@ def default_address_generator() -> str:
     return "1"
 
 
+def default_transaction_fee(first_wallet: Wallet, second_wallet: Wallet) -> float:
+    transaction_fee = 1.5
+    if first_wallet.api_key == second_wallet.api_key:
+        transaction_fee = 0
+
+    return transaction_fee
+
+
 @dataclass
 class BitcoinCore:
     user_repository: IUserRepository
@@ -59,9 +70,11 @@ class BitcoinCore:
     transaction_fee_strategy: Callable[[Wallet, Wallet], float]
 
     def register_user(self, _: RegisterUserRequest) -> CoreResponse:
-        handler = CreateUserHandler(next_handler=NoHandler(),
-                                    user_repository=self.user_repository,
-                                    api_key_generator_strategy=self.api_key_generator_strategy)
+        handler = CreateUserHandler(
+            next_handler=NoHandler(),
+            user_repository=self.user_repository,
+            api_key_generator_strategy=self.api_key_generator_strategy,
+        )
 
         return handler.handle()
         # api_key = self.api_key_generator_strategy()
@@ -190,26 +203,26 @@ class BitcoinCore:
                                 transactions_repository=self.transactions_repository,
                                 statistics_repository=self.statistics_repository,
                                 statistics_observer=StatisticsObserver(),
-                                transaction_fee_strategy=self.transaction_fee_strategy
+                                transaction_fee_strategy=self.transaction_fee_strategy,
                             ),
                             first_wallet_address=request.first_wallet_address,
                             second_wallet_address=request.second_wallet_address,
                             btc_amount=request.btc_amount,
                             wallet_repository=self.wallet_repository,
-                            transaction_fee_strategy=self.transaction_fee_strategy
+                            transaction_fee_strategy=self.transaction_fee_strategy,
                         ),
                         address=request.first_wallet_address,
                         btc_amount=request.btc_amount,
-                        wallet_repository=self.wallet_repository
+                        wallet_repository=self.wallet_repository,
                     ),
                     address=request.second_wallet_address,
-                    wallet_repository=self.wallet_repository
+                    wallet_repository=self.wallet_repository,
                 ),
                 address=request.first_wallet_address,
-                wallet_repository=self.wallet_repository
+                wallet_repository=self.wallet_repository,
             ),
             api_key=request.api_key,
-            user_repository=self.user_repository
+            user_repository=self.user_repository,
         )
 
         return handler.handle()

@@ -2,16 +2,19 @@ from dataclasses import dataclass
 from typing import Callable, Protocol
 
 from App.core import status
-from App.core.core_requests import AddressRequest, ApiKeyRequest, AmountAddressRequest
 from App.core.core_responses import (
     CoreResponse,
     CreateWalletResponse,
-    GetBalanceResponse, RegisterUserResponse, MakeTransactionResponse,
+    GetBalanceResponse,
+    MakeTransactionResponse,
+    RegisterUserResponse,
 )
 from App.core.models.wallet import Wallet
-from App.core.observer import IObserver, StatisticsObserver, IObservable
+from App.core.observer import StatisticsObserver
 from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
-from App.core.repository_interfaces.transactions_repository import ITransactionsRepository
+from App.core.repository_interfaces.transactions_repository import (
+    ITransactionsRepository,
+)
 from App.core.repository_interfaces.user_repository import IUserRepository
 from App.core.repository_interfaces.wallet_repository import IWalletRepository
 
@@ -37,7 +40,9 @@ class CreateUserHandler(IHandle):
         if not user_created:
             return CoreResponse(status_code=status.USER_REGISTRATION_ERROR)
 
-        return RegisterUserResponse(status_code=status.USER_CREATED_SUCCESSFULLY, api_key=api_key)
+        return RegisterUserResponse(
+            status_code=status.USER_CREATED_SUCCESSFULLY, api_key=api_key
+        )
 
 
 @dataclass
@@ -62,9 +67,7 @@ class MaxWalletsHandler(IHandle):
     wallet_repository: IWalletRepository
 
     def handle(self) -> CoreResponse:
-        num_wallets = self.wallet_repository.get_num_wallets(
-            api_key=self.api_key
-        )
+        num_wallets = self.wallet_repository.get_num_wallets(api_key=self.api_key)
 
         if num_wallets == MAX_AVAILABLE_WALLETS:
             return CoreResponse(status_code=status.CANT_CREATE_MORE_WALLETS)
@@ -132,9 +135,7 @@ class TransactionValidationHandler(IHandle):
     wallet_repository: IWalletRepository
 
     def handle(self) -> CoreResponse:
-        balance_btc = self.wallet_repository.get_balance(
-            address=self.address
-        )
+        balance_btc = self.wallet_repository.get_balance(address=self.address)
 
         if balance_btc < self.btc_amount:
             return CoreResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
@@ -156,6 +157,7 @@ class HasWalletHandler(IHandle):
 
         return self.next_handler.handle()
 
+
 @dataclass
 class MakeTransactionHandler(IHandle):
     next_handler: IHandle
@@ -166,8 +168,16 @@ class MakeTransactionHandler(IHandle):
     transaction_fee_strategy: Callable[[Wallet, Wallet], float]
 
     def handle(self) -> CoreResponse:
-        first_wallet = self.wallet_repository.get_wallet(address=self.first_wallet_address)
-        second_wallet = self.wallet_repository.get_wallet(address=self.second_wallet_address)
+        first_wallet = self.wallet_repository.get_wallet(
+            address=self.first_wallet_address
+        )
+        second_wallet = self.wallet_repository.get_wallet(
+            address=self.second_wallet_address
+        )
+
+        if first_wallet is None or second_wallet is None:
+            return CoreResponse(status_code=0)
+
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
         first_successful = self.wallet_repository.withdraw_btc(
@@ -183,8 +193,9 @@ class MakeTransactionHandler(IHandle):
         )
 
         if not second_successful:
-            self.wallet_repository.deposit_btc(address=self.first_wallet_address,
-                                               btc_amount=self.btc_amount)
+            self.wallet_repository.deposit_btc(
+                address=self.first_wallet_address, btc_amount=self.btc_amount
+            )
             return CoreResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
 
         return self.next_handler.handle()
@@ -221,10 +232,12 @@ class SaveTransactionHandler(IHandle):
             amount=self.btc_amount,
         )
 
-        self.statistics_observer.update(transaction_fee=transaction_fee, btc_amount=self.btc_amount, statistics_repository=self.statistics_repository)
+        self.statistics_observer.update(
+            transaction_fee=transaction_fee,
+            btc_amount=self.btc_amount,
+            statistics_repository=self.statistics_repository,
+        )
         return MakeTransactionResponse(status_code=status.TRANSACTION_SUCCESSFUL)
-
-
 
 
 class NoHandler(IHandle):
