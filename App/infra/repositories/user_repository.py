@@ -1,5 +1,3 @@
-import dataclasses
-
 from App.core.Models.user import User
 from App.core.repository_interfaces.user_repository import IUserRepository
 
@@ -16,5 +14,3 @@ class InMemoryUserRepository(IUserRepository):
     def has_user(self, api_key: str) -> bool:
         user = User(api_key=api_key)
         return user in self.users
-
-

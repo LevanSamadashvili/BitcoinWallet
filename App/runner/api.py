@@ -56,8 +56,6 @@ def get_core() -> BitcoinCore:
 )
 def register_user(
     response: Response,
-    first_name: str,
-    last_name: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> RegisterUserResponse:
     """
@@ -65,9 +63,7 @@ def register_user(
     - Returns API key that can authenticate all subsequent requests for this user
     """
 
-    register_user_response = bitcoin_core.register_user(
-        RegisterUserRequest()
-    )
+    register_user_response = bitcoin_core.register_user(RegisterUserRequest())
     response.status_code = register_user_response.status_code
     return register_user_response
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Union
+from typing import Callable
 
 from App.core import status
 from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
@@ -24,7 +24,7 @@ from App.core.responses import (
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
     MakeTransactionResponse,
-    RegisterUserResponse, Response,
+    RegisterUserResponse,
 )
 
 MAX_AVAILABLE_WALLETS = 3
@@ -58,15 +58,11 @@ class BitcoinCore:
         user_created = self.user_repository.create_user(api_key)
 
         if not user_created:
-            return RegisterUserResponse(
-                status_code=status.USER_REGISTRATION_ERROR, api_key=""
-            )
+            return RegisterUserResponse(status_code=213, api_key="")
 
-        return RegisterUserResponse(
-            status_code=status.USER_CREATED_SUCCESSFULLY, api_key=api_key
-        )
+        return RegisterUserResponse(status_code=213, api_key=api_key)
 
-    def create_wallet(self, request: CreateWalletRequest) -> Union[CreateWalletResponse, Response]:
+    def create_wallet(self, request: CreateWalletRequest) -> CreateWalletResponse:
         has_user = self.user_repository.has_user(api_key=request.api_key)
 
         if not has_user:
@@ -122,6 +118,15 @@ class BitcoinCore:
             )
 
         wallet = self.wallet_repository.get_wallet(address=request.address)
+
+        if wallet is None:
+            return GetBalanceResponse(
+                address="",
+                balance_btc=0.0,
+                balance_usd=0.0,
+                status_code=status.INVALID_WALLET,
+            )
+
         balance_usd = self.btc_usd_convertor(wallet.balance_btc)
         return GetBalanceResponse(
             address=wallet.address,
@@ -138,13 +143,19 @@ class BitcoinCore:
         if not has_user:
             return MakeTransactionResponse(status_code=status.INCORRECT_API_KEY)
 
-        first_balance_btc = self.wallet_repository.get_balance(address=request.first_wallet_address)
+        first_balance_btc = self.wallet_repository.get_balance(
+            address=request.first_wallet_address
+        )
 
         if request.btc_amount > first_balance_btc:
             return MakeTransactionResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
 
-        first_wallet = self.wallet_repository.get_wallet(address=request.first_wallet_address)
-        second_wallet = self.wallet_repository.get_wallet(address=request.second_wallet_address)
+        first_wallet = self.wallet_repository.get_wallet(
+            address=request.first_wallet_address
+        )
+        second_wallet = self.wallet_repository.get_wallet(
+            address=request.second_wallet_address
+        )
 
         if first_wallet is None or second_wallet is None:
             return MakeTransactionResponse(status_code=status.INVALID_WALLET)
@@ -153,8 +164,13 @@ class BitcoinCore:
         if first_wallet.api_key == second_wallet.api_key:
             transaction_fee = 0
 
-        first_successful = self.wallet_repository.withdraw_btc(address=request.first_wallet_address, btc_amount=request.btc_amount)
-        second_successful = self.wallet_repository.deposit_btc(address=request.second_wallet_address, btc_amount=(100 - transaction_fee) * request.btc_amount)
+        first_successful = self.wallet_repository.withdraw_btc(
+            address=request.first_wallet_address, btc_amount=request.btc_amount
+        )
+        second_successful = self.wallet_repository.deposit_btc(
+            address=request.second_wallet_address,
+            btc_amount=(100 - transaction_fee) * request.btc_amount,
+        )
 
         if not first_successful or not second_successful:
             return MakeTransactionResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
@@ -166,25 +182,39 @@ class BitcoinCore:
     ) -> GetTransactionsResponse:
 
         if not self.user_repository.has_user(request.api_key):
-            return GetTransactionsResponse(status_code=status.INCORRECT_API_KEY, transactions=list())
+            return GetTransactionsResponse(
+                status_code=status.INCORRECT_API_KEY, transactions=list()
+            )
 
         transactions = self.transactions_repository.get_all_transactions()
         if transactions is None:
-            return GetTransactionsResponse(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL, transactions=list())
+            return GetTransactionsResponse(
+                status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL, transactions=list()
+            )
 
-        return GetTransactionsResponse(status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions)
+        return GetTransactionsResponse(
+            status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions
+        )
 
     def get_wallet_transactions(
         self, request: GetWalletTransactionsRequest
     ) -> GetWalletTransactionsResponse:
         if not self.wallet_repository.has_wallet(request.address):
-            return GetWalletTransactionsResponse(status_code=status.INVALID_WALLET, transactions=list())
+            return GetWalletTransactionsResponse(
+                status_code=status.INVALID_WALLET, transactions=list()
+            )
 
-        transactions = self.transactions_repository.get_wallet_transactions(address=request.address)
+        transactions = self.transactions_repository.get_wallet_transactions(
+            address=request.address
+        )
         if transactions is None:
-            return GetWalletTransactionsResponse(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL, transactions=list())
+            return GetWalletTransactionsResponse(
+                status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL, transactions=list()
+            )
 
-        return GetWalletTransactionsResponse(status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions)
+        return GetWalletTransactionsResponse(
+            status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions
+        )
 
     def get_statistics(self, request: GetStatisticsRequest) -> GetStatisticsResponse:
         statistics = self.statistics_repository.get_statistics()
@@ -192,14 +222,20 @@ class BitcoinCore:
         key = request.api_key
         if not self.user_repository.is_admin(key):
             return GetStatisticsResponse(
-                status_code=status.INCORRECT_API_KEY, total_num_transactions=0, platform_profit=0.0
+                status_code=status.INCORRECT_API_KEY,
+                total_num_transactions=0,
+                platform_profit=0.0,
             )
 
         if statistics is None:
             return GetStatisticsResponse(
-                status_code=status.FETCH_STATISTICS_UNSUCCESSFUL, total_num_transactions=0, platform_profit=0.0
+                status_code=status.FETCH_STATISTICS_UNSUCCESSFUL,
+                total_num_transactions=0,
+                platform_profit=0.0,
             )
 
         return GetStatisticsResponse(
-            status_code=status.FETCH_STATISTICS_SUCCESSFUL, total_num_transactions=25, platform_profit=35.0
+            status_code=status.FETCH_STATISTICS_SUCCESSFUL,
+            total_num_transactions=25,
+            platform_profit=35.0,
         )

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 class RegisterUserRequest:
     pass
 
+
 @dataclass
 class ApiKeyRequest:
     api_key: str

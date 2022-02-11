@@ -1,4 +1,4 @@
-from typing import Protocol, Optional
+from typing import Optional, Protocol
 
 from App.core.Models.wallet import Wallet
 

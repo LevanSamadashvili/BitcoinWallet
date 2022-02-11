@@ -8,7 +8,9 @@ class InMemoryWalletRepository(IWalletRepository):
     wallets: dict[str, Wallet]
 
     def create_wallet(self, address: str, api_key: str) -> bool:
-        self.wallets[address] = (Wallet(address=address, api_key=api_key, balance_btc=0.0))
+        self.wallets[address] = Wallet(
+            address=address, api_key=api_key, balance_btc=0.0
+        )
         return True
 
     def has_wallet(self, address: str) -> bool:
