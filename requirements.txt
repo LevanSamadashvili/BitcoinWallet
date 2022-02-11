@@ -2,6 +2,7 @@ black
 isort
 mypy
 flake8
+requests
 pytest
 fastapi
 uvicorn[standard]

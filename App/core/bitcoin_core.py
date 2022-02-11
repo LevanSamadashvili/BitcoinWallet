@@ -2,14 +2,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from App.core import status
-from App.core.repository_interfaces.admin_repository import IAdminRepository
-from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
-from App.core.repository_interfaces.transactions_repository import (
-    ITransactionsRepository,
-)
-from App.core.repository_interfaces.user_repository import IUserRepository
-from App.core.repository_interfaces.wallet_repository import IWalletRepository
-from App.core.requests import (
+from App.core.core_requests import (
     CreateWalletRequest,
     GetBalanceRequest,
     GetStatisticsRequest,
@@ -18,6 +11,13 @@ from App.core.requests import (
     MakeTransactionRequest,
     RegisterUserRequest,
 )
+from App.core.repository_interfaces.admin_repository import IAdminRepository
+from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
+from App.core.repository_interfaces.transactions_repository import (
+    ITransactionsRepository,
+)
+from App.core.repository_interfaces.user_repository import IUserRepository
+from App.core.repository_interfaces.wallet_repository import IWalletRepository
 from App.core.responses import (
     CreateWalletResponse,
     GetBalanceResponse,
@@ -37,10 +37,6 @@ def default_api_key_generator() -> str:
 
 def default_address_generator() -> str:
     return "1"
-
-
-def default_btc_usd_convertor(btc_amount: float) -> float:
-    return 2 * btc_amount
 
 
 @dataclass
@@ -177,8 +173,11 @@ class BitcoinCore:
         if not first_successful or not second_successful:
             return MakeTransactionResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
 
-        self.transactions_repository.add_transaction(request.first_wallet_address,
-                                                     request.second_wallet_address, request.btc_amount)
+        self.transactions_repository.add_transaction(
+            request.first_wallet_address,
+            request.second_wallet_address,
+            request.btc_amount,
+        )
         return MakeTransactionResponse(status_code=status.TRANSACTION_SUCCESSFUL)
 
     def get_transactions(

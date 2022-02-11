@@ -5,9 +5,9 @@ from App.core.bitcoin_core import (
     BitcoinCore,
     default_address_generator,
     default_api_key_generator,
-    default_btc_usd_convertor,
 )
-from App.core.requests import (
+from App.core.btc_usd import default_btc_usd_convertor
+from App.core.core_requests import (
     CreateWalletRequest,
     GetBalanceRequest,
     GetStatisticsRequest,
@@ -45,7 +45,7 @@ def get_core() -> BitcoinCore:
         api_key_generator_strategy=default_api_key_generator,
         address_generator_strategy=default_address_generator,
         btc_usd_convertor=default_btc_usd_convertor,
-        admin_repository=InMemoryAdminRepository(api_key="1")
+        admin_repository=InMemoryAdminRepository(api_key="1"),
     )
 
 
