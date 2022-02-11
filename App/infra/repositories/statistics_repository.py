@@ -1,6 +1,6 @@
 from typing import Optional
 
-from App.core.Models.Statistics import Statistics
+from App.core.models.statistics import Statistics
 from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
 
 

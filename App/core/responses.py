@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from App.core.Models.transaction import Transaction
+from App.core.models.transaction import Transaction
 
 
 @dataclass

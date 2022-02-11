@@ -1,6 +1,6 @@
 from typing import Optional, Protocol
 
-from App.core.Models.wallet import Wallet
+from App.core.models.wallet import Wallet
 
 
 class IWalletRepository(Protocol):

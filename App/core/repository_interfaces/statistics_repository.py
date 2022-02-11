@@ -1,6 +1,6 @@
 from typing import Optional, Protocol
 
-from App.core.Models.Statistics import Statistics
+from App.core.models.statistics import Statistics
 
 
 class IStatisticsRepository(Protocol):

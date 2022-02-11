@@ -1,4 +1,4 @@
-from App.core.Models.user import User
+from App.core.models.user import User
 from App.core.repository_interfaces.admin_repository import IAdminRepository
 
 

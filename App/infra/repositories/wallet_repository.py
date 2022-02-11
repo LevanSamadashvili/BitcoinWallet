@@ -1,6 +1,6 @@
 from typing import Optional
 
-from App.core.Models.wallet import Wallet
+from App.core.models.wallet import Wallet
 from App.core.repository_interfaces.wallet_repository import IWalletRepository
 
 

@@ -1,4 +1,4 @@
-from App.core.Models.user import User
+from App.core.models.user import User
 from App.core.repository_interfaces.user_repository import IUserRepository
 
 

@@ -1,6 +1,6 @@
 from typing import Optional, Protocol
 
-from App.core.Models.transaction import Transaction
+from App.core.models.transaction import Transaction
 
 
 class ITransactionsRepository(Protocol):

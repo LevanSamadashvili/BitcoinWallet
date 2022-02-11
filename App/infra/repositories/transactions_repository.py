@@ -1,6 +1,6 @@
 from typing import Optional
 
-from App.core.Models.transaction import Transaction
+from App.core.models.transaction import Transaction
 from App.core.repository_interfaces.transactions_repository import (
     ITransactionsRepository,
 )
