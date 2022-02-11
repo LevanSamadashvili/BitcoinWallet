@@ -16,15 +16,7 @@ from App.core.core_requests import (
     MakeTransactionRequest,
     RegisterUserRequest,
 )
-from App.core.responses import (
-    CreateWalletResponse,
-    GetBalanceResponse,
-    GetStatisticsResponse,
-    GetTransactionsResponse,
-    GetWalletTransactionsResponse,
-    MakeTransactionResponse,
-    RegisterUserResponse,
-)
+from App.core.core_responses import CoreResponse
 from App.infra.repositories.admin_repository import InMemoryAdminRepository
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
@@ -59,7 +51,7 @@ def get_core() -> BitcoinCore:
 def register_user(
     response: Response,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> RegisterUserResponse:
+) -> CoreResponse:
     """
     - Registers user
     - Returns API key that can authenticate all subsequent requests for this user
@@ -84,7 +76,7 @@ def create_wallet(
     response: Response,
     api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CreateWalletResponse:
+) -> CoreResponse:
     """
      - Requires API key
      - Create BTC wallet
@@ -107,7 +99,7 @@ def get_balance(
     address: str,
     api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> GetBalanceResponse:
+) -> CoreResponse:
     """
     - Requires API key
     - Returns wallet address and balance in BTC and USD
@@ -128,7 +120,7 @@ def make_transaction(
     second_wallet_address: str,
     btc_amount: float,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> MakeTransactionResponse:
+) -> CoreResponse:
     """
     - Requires API key
     - Makes a transaction from one wallet to another
@@ -152,7 +144,7 @@ def make_transaction(
 @app.get("/transactions")
 def get_transactions(
     response: Response, api_key: str, bitcoin_core: BitcoinCore = Depends(get_core)
-) -> GetTransactionsResponse:
+) -> CoreResponse:
     """
     - Requires API key
     - Returns list of transactions
@@ -171,7 +163,7 @@ def get_wallet_transactions(
     api_key: str,
     address: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> GetWalletTransactionsResponse:
+) -> CoreResponse:
     """
     - Requires API key
     - returns transactions related to the wallet
@@ -190,7 +182,7 @@ def get_statistics(
     response: Response,
     admin_api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> GetStatisticsResponse:
+) -> CoreResponse:
     """
     - Requires pre-set (hard coded) Admin API key
     - Returns the total number of transactions and platform profit

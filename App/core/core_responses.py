@@ -4,39 +4,36 @@ from App.core.models.transaction import Transaction
 
 
 @dataclass
-class Response:
+class CoreResponse:
     status_code: int
 
 
 @dataclass
-class WalletParametersResponse:
+class RegisterUserResponse(CoreResponse):
+    api_key: str
+
+
+@dataclass
+class CreateWalletResponse(CoreResponse):
     address: str
     balance_usd: float
     balance_btc: float
 
 
 @dataclass
-class RegisterUserResponse(Response):
-    api_key: str
+class GetBalanceResponse(CoreResponse):
+    address: str
+    balance_usd: float
+    balance_btc: float
 
 
 @dataclass
-class CreateWalletResponse(Response, WalletParametersResponse):
-    pass
-
-
-@dataclass
-class GetBalanceResponse(Response, WalletParametersResponse):
-    pass
-
-
-@dataclass
-class GetTransactionsResponse(Response):
+class GetTransactionsResponse(CoreResponse):
     transactions: list[Transaction]
 
 
 @dataclass
-class MakeTransactionResponse(Response):
+class MakeTransactionResponse(CoreResponse):
     pass
 
 
@@ -46,6 +43,6 @@ class GetWalletTransactionsResponse(GetTransactionsResponse):
 
 
 @dataclass
-class GetStatisticsResponse(Response):
+class GetStatisticsResponse(CoreResponse):
     total_num_transactions: int
     platform_profit: float
