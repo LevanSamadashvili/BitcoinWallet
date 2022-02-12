@@ -17,7 +17,6 @@ from App.core.core_responses import (
     MakeTransactionResponse,
     RegisterUserResponse,
 )
-
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
 from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
@@ -76,7 +75,7 @@ class MaxWalletsHandler(IHandle):
     def handle(self) -> CoreResponse:
         num_wallets = self.wallet_repository.get_num_wallets(api_key=self.api_key)
 
-        if num_wallets == MAX_AVAILABLE_WALLETS:
+        if num_wallets >= MAX_AVAILABLE_WALLETS:
             return CoreResponse(status_code=status.CANT_CREATE_MORE_WALLETS)
 
         return self.next_handler.handle()

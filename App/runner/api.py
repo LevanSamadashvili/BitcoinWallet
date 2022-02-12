@@ -49,7 +49,8 @@ def get_core() -> BitcoinCore:
     },
 )
 def register_user(
-    response: Response, bitcoin_core: BitcoinCore = Depends(get_core),
+    response: Response,
+    bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> CoreResponse:
     """
     - Registers user
@@ -72,7 +73,9 @@ def register_user(
     },
 )
 def create_wallet(
-    response: Response, api_key: str, bitcoin_core: BitcoinCore = Depends(get_core),
+    response: Response,
+    api_key: str,
+    bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> CoreResponse:
     """
      - Requires API key
