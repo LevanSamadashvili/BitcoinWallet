@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from sqlite3 import Connection, Cursor
 from typing import Optional
 
 from App.core.models.wallet import Wallet
@@ -38,3 +40,61 @@ class InMemoryWalletRepository(IWalletRepository):
 
     def get_wallet(self, address: str) -> Optional[Wallet]:
         return self.wallets[address]
+
+
+@dataclass
+class SQLiteWalletRepository(IWalletRepository):
+    connection: Connection
+    cursor: Cursor
+
+    def create_wallet(self, address: str, api_key: str) -> bool:
+        rows_modified = self.cursor.execute(
+            "INSERT INTO wallets (address, api_key, balance) VALUES (?, ?, ?)",
+            (address, api_key, 0),
+        ).rowcount
+        self.connection.commit()
+        return rows_modified > 0
+
+    def has_wallet(self, address: str) -> bool:
+        self.cursor.execute("SELECT * from wallets WHERE address = ?;", (address,))
+        result_set = self.cursor.fetchall()
+        return len(result_set) > 0
+
+    def deposit_btc(self, address: str, btc_amount: float) -> bool:
+        current_balance = self.get_balance(address)
+        updated_balance = current_balance + btc_amount
+        self.cursor.execute(
+            "UPDATE wallets SET balance = ? WHERE address = ? ",
+            (updated_balance, address),
+        )
+        self.connection.commit()
+        if self.get_balance(address) == updated_balance:
+            return True
+        return False
+
+    def withdraw_btc(self, address: str, btc_amount: float) -> bool:
+        return self.deposit_btc(address, -btc_amount)
+
+    def get_balance(self, address: str) -> float:
+        self.cursor.execute(
+            "SELECT balance from wallets WHERE address = ?;", (address,)
+        )
+        result_set = self.cursor.fetchall()
+        return float(result_set[0][0])
+
+    def get_num_wallets(self, api_key: str) -> int:
+        self.cursor.execute(
+            "SELECT count(*) from wallets WHERE api_key = ?;", (api_key,)
+        )
+        result_set = self.cursor.fetchall()
+        return int(result_set[0][0])
+
+    def get_wallet(self, address: str) -> Optional[Wallet]:
+        if not self.has_wallet(address):
+            return None
+        self.cursor.execute("SELECT * from wallets WHERE address = ?;", (address,))
+        result_set = self.cursor.fetchall()
+        if len(result_set) <= 0:
+            return None
+        wallet = result_set[0]
+        return Wallet(api_key=wallet[1], address=wallet[0], balance_btc=wallet[2])
