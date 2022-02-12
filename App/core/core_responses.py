@@ -38,6 +38,11 @@ class MakeTransactionResponse(CoreResponse):
 
 
 @dataclass
+class SaveTransactionResponse(CoreResponse):
+    pass
+
+
+@dataclass
 class GetWalletTransactionsResponse(GetTransactionsResponse):
     transactions: list[Transaction]
 
