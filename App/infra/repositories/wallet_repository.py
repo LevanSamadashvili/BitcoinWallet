@@ -39,6 +39,9 @@ class InMemoryWalletRepository(IWalletRepository):
         return count
 
     def get_wallet(self, address: str) -> Optional[Wallet]:
+        if not self.has_wallet(address=address):
+            return None
+
         return self.wallets[address]
 
 
