@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable
 
-
 from App.core import status
 from App.core.constants import (
     ADMIN_API_KEY,
@@ -15,8 +14,8 @@ from App.core.core_responses import (
     GetStatisticsResponse,
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
-    MakeTransactionResponse,
-    RegisterUserResponse, SaveTransactionResponse,
+    RegisterUserResponse,
+    SaveTransactionResponse,
 )
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
