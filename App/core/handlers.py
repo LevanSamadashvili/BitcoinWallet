@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable
 
+
 from App.core import status
 from App.core.constants import (
     ADMIN_API_KEY,
@@ -15,7 +16,7 @@ from App.core.core_responses import (
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
     MakeTransactionResponse,
-    RegisterUserResponse,
+    RegisterUserResponse, SaveTransactionResponse,
 )
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
@@ -243,7 +244,7 @@ class SaveTransactionHandler(IHandle):
             btc_amount=self.btc_amount,
             statistics_repository=self.statistics_repository,
         )
-        return MakeTransactionResponse(status_code=status.TRANSACTION_SUCCESSFUL)
+        return SaveTransactionResponse(status_code=status.TRANSACTION_SUCCESSFUL)
 
 
 @dataclass
