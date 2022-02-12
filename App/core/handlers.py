@@ -1,14 +1,23 @@
 from dataclasses import dataclass
-from typing import Callable, Protocol
+from typing import Callable
 
 from App.core import status
+from App.core.constants import (
+    ADMIN_API_KEY,
+    INITIAL_BITCOINS_WALLET,
+    MAX_AVAILABLE_WALLETS,
+)
 from App.core.core_responses import (
     CoreResponse,
     CreateWalletResponse,
     GetBalanceResponse,
+    GetStatisticsResponse,
+    GetTransactionsResponse,
+    GetWalletTransactionsResponse,
     MakeTransactionResponse,
     RegisterUserResponse,
 )
+
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
 from App.core.repository_interfaces.statistics_repository import IStatisticsRepository
@@ -18,11 +27,9 @@ from App.core.repository_interfaces.transactions_repository import (
 from App.core.repository_interfaces.user_repository import IUserRepository
 from App.core.repository_interfaces.wallet_repository import IWalletRepository
 
-MAX_AVAILABLE_WALLETS = 3
-INITIAL_BITCOINS_WALLET = 1.0
 
-
-class IHandle(Protocol):
+@dataclass
+class IHandle:
     def handle(self) -> CoreResponse:
         pass
 
@@ -176,7 +183,7 @@ class MakeTransactionHandler(IHandle):
         )
 
         if first_wallet is None or second_wallet is None:
-            return CoreResponse(status_code=0)
+            return CoreResponse(status_code=status.INVALID_WALLET)
 
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
@@ -217,12 +224,12 @@ class SaveTransactionHandler(IHandle):
         first_wallet = self.wallet_repository.get_wallet(address=self.first_address)
 
         if first_wallet is None:
-            return CoreResponse(status_code=0)
+            return CoreResponse(status_code=status.INVALID_WALLET)
 
         second_wallet = self.wallet_repository.get_wallet(address=self.second_address)
 
         if second_wallet is None:
-            return CoreResponse(status_code=0)
+            return CoreResponse(status_code=status.INVALID_WALLET)
 
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
@@ -238,6 +245,68 @@ class SaveTransactionHandler(IHandle):
             statistics_repository=self.statistics_repository,
         )
         return MakeTransactionResponse(status_code=status.TRANSACTION_SUCCESSFUL)
+
+
+@dataclass
+class GetTransactionHandler(IHandle):
+    next_handler: IHandle
+    transactions_repository: ITransactionsRepository
+
+    def handle(self) -> CoreResponse:
+        transactions = self.transactions_repository.get_all_transactions()
+        if transactions is None:
+            return CoreResponse(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL)
+
+        return GetTransactionsResponse(
+            status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions
+        )
+
+
+@dataclass
+class GetWalletTransactionsHandler(IHandle):
+    next_handler: IHandle
+    transactions_repository: ITransactionsRepository
+    address: str
+
+    def handle(self) -> CoreResponse:
+        transactions = self.transactions_repository.get_wallet_transactions(
+            address=self.address
+        )
+        if transactions is None:
+            return CoreResponse(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL)
+
+        return GetWalletTransactionsResponse(
+            status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions
+        )
+
+
+@dataclass
+class IsAdminHandler(IHandle):
+    next_handler: IHandle
+    key: str
+
+    def handle(self) -> CoreResponse:
+        if self.key != ADMIN_API_KEY:
+            return CoreResponse(status_code=status.INCORRECT_API_KEY)
+        return self.next_handler.handle()
+
+
+@dataclass
+class GetStatisticsHandler(IHandle):
+    next_handler: IHandle
+    statistics_repository: IStatisticsRepository
+
+    def handle(self) -> CoreResponse:
+        statistics = self.statistics_repository.get_statistics()
+
+        if statistics is None:
+            return CoreResponse(status_code=status.FETCH_STATISTICS_UNSUCCESSFUL)
+
+        return GetStatisticsResponse(
+            status_code=status.FETCH_STATISTICS_SUCCESSFUL,
+            total_num_transactions=statistics.num_transactions,
+            platform_profit=statistics.profit,
+        )
 
 
 class NoHandler(IHandle):

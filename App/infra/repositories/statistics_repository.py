@@ -9,3 +9,7 @@ class InMemoryStatisticsRepository(IStatisticsRepository):
 
     def get_statistics(self) -> Optional[Statistics]:
         return self.statistics
+
+    def add_statistic(self, num_new_transactions: int, profit: float) -> None:
+        self.statistics.num_transactions += num_new_transactions
+        self.statistics.profit += profit

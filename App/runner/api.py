@@ -18,7 +18,6 @@ from App.core.core_requests import (
     RegisterUserRequest,
 )
 from App.core.core_responses import CoreResponse
-from App.infra.repositories.admin_repository import InMemoryAdminRepository
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
     InMemoryTransactionsRepository,
@@ -38,7 +37,6 @@ def get_core() -> BitcoinCore:
         api_key_generator_strategy=default_api_key_generator,
         address_generator_strategy=default_address_generator,
         btc_usd_convertor_strategy=default_btc_usd_convertor,
-        admin_repository=InMemoryAdminRepository(api_key="1"),
         transaction_fee_strategy=default_transaction_fee,
     )
 
@@ -51,8 +49,7 @@ def get_core() -> BitcoinCore:
     },
 )
 def register_user(
-    response: Response,
-    bitcoin_core: BitcoinCore = Depends(get_core),
+    response: Response, bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> CoreResponse:
     """
     - Registers user
@@ -75,9 +72,7 @@ def register_user(
     },
 )
 def create_wallet(
-    response: Response,
-    api_key: str,
-    bitcoin_core: BitcoinCore = Depends(get_core),
+    response: Response, api_key: str, bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> CoreResponse:
     """
      - Requires API key

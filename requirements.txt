@@ -6,3 +6,6 @@ requests
 pytest
 fastapi
 uvicorn[standard]
+types-orjson
+types-requests
+types-ujson
