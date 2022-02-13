@@ -1,7 +1,7 @@
 from typing import Protocol
 
 
-class IUserRepository:
+class IUserRepository(Protocol):
     def create_user(self, api_key: str) -> bool:
         pass
 
