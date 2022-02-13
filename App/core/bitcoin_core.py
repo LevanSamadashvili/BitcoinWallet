@@ -37,22 +37,6 @@ from App.core.repository_interfaces.user_repository import IUserRepository
 from App.core.repository_interfaces.wallet_repository import IWalletRepository
 
 
-def default_api_key_generator() -> str:
-    return "1"
-
-
-def default_address_generator() -> str:
-    return "1"
-
-
-def default_transaction_fee(first_wallet: Wallet, second_wallet: Wallet) -> float:
-    transaction_fee = 1.5
-    if first_wallet.api_key == second_wallet.api_key:
-        transaction_fee = 0
-
-    return transaction_fee
-
-
 @dataclass
 class BitcoinCore:
     user_repository: IUserRepository
@@ -162,14 +146,18 @@ class BitcoinCore:
         self, request: GetWalletTransactionsRequest
     ) -> CoreResponse:
 
-        handler = HasWalletHandler(
-            next_handler=GetWalletTransactionsHandler(
-                next_handler=NoHandler(),
-                transactions_repository=self.transactions_repository,
+        handler = HasUserHandler(
+            next_handler=HasWalletHandler(
+                next_handler=GetWalletTransactionsHandler(
+                    next_handler=NoHandler(),
+                    transactions_repository=self.transactions_repository,
+                    address=request.address,
+                ),
                 address=request.address,
+                wallet_repository=self.wallet_repository,
             ),
-            address=request.address,
-            wallet_repository=self.wallet_repository,
+            api_key=request.api_key,
+            user_repository=self.user_repository,
         )
         return handler.handle()
 

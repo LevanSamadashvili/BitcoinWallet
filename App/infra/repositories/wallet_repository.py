@@ -57,7 +57,9 @@ class SQLiteWalletRepository(IWalletRepository):
             (address, api_key, 0),
         ).rowcount
         self.connection.commit()
-        return rows_modified > 0
+        if rows_modified > 0:
+            return True
+        return False
 
     def has_wallet(self, address: str) -> bool:
         cursor = self.connection.cursor()
