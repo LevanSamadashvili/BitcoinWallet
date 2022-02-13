@@ -2,12 +2,7 @@ import unittest
 
 from starlette.responses import Response
 
-from App.core.bitcoin_core import (
-    BitcoinCore,
-    default_address_generator,
-    default_api_key_generator,
-    default_transaction_fee,
-)
+from App.core.bitcoin_core import BitcoinCore, default_transaction_fee
 from App.core.btc_usd import default_btc_usd_convertor
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
@@ -15,6 +10,7 @@ from App.infra.repositories.transactions_repository import (
 )
 from App.infra.repositories.user_repository import InMemoryUserRepository
 from App.infra.repositories.wallet_repository import InMemoryWalletRepository
+from App.infra.strategies import default_address_generator, default_api_key_generator
 from App.runner.api import register_user
 
 
