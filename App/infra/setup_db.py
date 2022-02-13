@@ -3,13 +3,10 @@ from sqlite3 import Connection, Cursor
 
 
 def create_tables(cursor: Cursor, connection: Connection) -> None:
-    # cursor.execute("""DROP TABLE product_types""")
-    # cursor.execute("""DROP TABLE receipt_items""")
-    # cursor.execute("""DROP TABLE item_packs""")
-    # cursor.execute("""DROP TABLE item_batches""")
-    # cursor.execute("""DROP TABLE items""")
-    # cursor.execute("""DROP TABLE reporting""")
-    # cursor.execute("""DROP TABLE receipts""")
+    cursor.execute("""DROP TABLE users""")
+    cursor.execute("""DROP TABLE wallets""")
+    cursor.execute("""DROP TABLE transactions""")
+    cursor.execute("""DROP TABLE statistics""")
 
     cursor.execute(
         """CREATE TABLE users

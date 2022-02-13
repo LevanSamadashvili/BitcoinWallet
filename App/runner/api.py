@@ -1,3 +1,5 @@
+import sqlite3
+
 from fastapi import Depends, FastAPI, Response
 
 from App.core import status
@@ -14,12 +16,10 @@ from App.core.core_requests import (
     RegisterUserRequest,
 )
 from App.core.core_responses import ResponseContent
-from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
-from App.infra.repositories.transactions_repository import (
-    InMemoryTransactionsRepository,
-)
-from App.infra.repositories.user_repository import InMemoryUserRepository
-from App.infra.repositories.wallet_repository import InMemoryWalletRepository
+from App.infra.repositories.statistics_repository import SQLiteStatisticsRepository
+from App.infra.repositories.transactions_repository import SQLiteTransactionsRepository
+from App.infra.repositories.user_repository import SQLiteUserRepository
+from App.infra.repositories.wallet_repository import SQLiteWalletRepository
 from App.infra.strategies import (
     default_transaction_fee,
     random_address_generator,
@@ -27,14 +27,15 @@ from App.infra.strategies import (
 )
 
 app = FastAPI()
+connection = sqlite3.connect("App/infra/database.db", check_same_thread=False)
 
 
 def get_core() -> BitcoinCore:
     return BitcoinCore(
-        user_repository=InMemoryUserRepository(),
-        wallet_repository=InMemoryWalletRepository(),
-        transactions_repository=InMemoryTransactionsRepository(),
-        statistics_repository=InMemoryStatisticsRepository(),
+        user_repository=SQLiteUserRepository(connection=connection),
+        wallet_repository=SQLiteWalletRepository(connection=connection),
+        transactions_repository=SQLiteTransactionsRepository(connection=connection),
+        statistics_repository=SQLiteStatisticsRepository(connection=connection),
         api_key_generator_strategy=random_api_key_generator,
         address_generator_strategy=random_address_generator,
         btc_usd_convertor_strategy=default_btc_usd_convertor,
