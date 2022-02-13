@@ -332,6 +332,7 @@ class WalletBelongsToUserHandler(IHandle):
     def handle(self) -> CoreResponse:
         wallet = self.wallet_repository.get_wallet(self.address)
         if wallet is None:
+            print(self.address)
             return CoreResponse(status_code=status.INVALID_WALLET)
 
         if self.api_key != wallet.api_key:
