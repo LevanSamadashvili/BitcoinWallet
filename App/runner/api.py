@@ -1,7 +1,8 @@
 import sqlite3
 from sqlite3 import Connection
+from typing import Optional
 
-from fastapi import Depends, FastAPI, Response
+from fastapi import Depends, FastAPI, Response, Header
 
 from App.core import status
 from App.core.bitcoin_core import BitcoinCore
@@ -59,8 +60,8 @@ def get_core() -> BitcoinCore:
 @app.post(
     "/users",
     responses={
-        status.USER_REGISTRATION_ERROR: {"description": "User registration error"},
-        status.USER_CREATED_SUCCESSFULLY: {"description": "User created successfully"},
+        HTTP_DICT[status.USER_CREATED_SUCCESSFULLY]: {"description": "User created successfully"},
+        HTTP_DICT[status.USER_REGISTRATION_ERROR]: {"description": "User registration error"},
     },
 )
 def register_user(
@@ -80,16 +81,18 @@ def register_user(
 @app.post(
     "/wallets",
     responses={
-        status.INCORRECT_API_KEY: {"description": "Incorrect API key"},
-        status.WALLET_CREATION_ERROR: {"description": "Wallet creation error"},
-        status.WALLET_CREATED_SUCCESSFULLY: {
+        HTTP_DICT[status.WALLET_CREATED_SUCCESSFULLY]: {
             "description": "Wallet created successfully"
         },
+        400: {"description": "Bad request."},
+        HTTP_DICT[status.CANT_CREATE_MORE_WALLETS]: {"description": "Can't create more wallets"},
+        HTTP_DICT[status.INCORRECT_API_KEY]: {"description": "Invalid API key"},
+        HTTP_DICT[status.WALLET_CREATION_ERROR]: {"description": "Wallet creation error"},
     },
 )
 def create_wallet(
     response: Response,
-    api_key: str,
+    api_key: Optional[str] = Header(None),
     bitcoin_core: BitcoinCore = Depends(get_core),
 ) -> ResponseContent:
     """
@@ -100,6 +103,10 @@ def create_wallet(
      - User may register up to 3 wallets
      - Returns wallet address and balance in BTC and USD
     """
+
+    if api_key is None:
+        response.status_code = 400
+        return ResponseContent()
 
     create_wallet_response = bitcoin_core.create_wallet(
         CreateWalletRequest(api_key=api_key)
