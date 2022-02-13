@@ -32,6 +32,11 @@ class SQLiteStatisticsRepository(IStatisticsRepository):
     def add_statistic(self, num_new_transactions: int, profit: float) -> None:
         current_statistics = self.get_statistics()
         if current_statistics is None:
+            self.cursor.execute(
+                "INSERT INTO statistics (num_transactions, profit) VALUES (?, ?)",
+                 (num_new_transactions, profit),
+            )
+            self.connection.commit()
             return
         updated_num_transactions = (
             current_statistics.num_transactions + num_new_transactions
