@@ -7,6 +7,7 @@ from App.core.models.transaction import Transaction
 class ResponseContent:
     pass
 
+
 @dataclass
 class RegisterUserResponse(ResponseContent):
     api_key: str

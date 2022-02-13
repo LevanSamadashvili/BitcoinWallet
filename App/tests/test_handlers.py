@@ -7,13 +7,13 @@ from unittest.mock import MagicMock
 from App.core import status
 from App.core.constants import INITIAL_BITCOINS_WALLET, MAX_AVAILABLE_WALLETS
 from App.core.core_responses import (
-    ResponseContent,
     CreateWalletResponse,
     GetBalanceResponse,
     GetStatisticsResponse,
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
     RegisterUserResponse,
+    ResponseContent,
     SaveTransactionResponse,
 )
 from App.core.handlers import (
