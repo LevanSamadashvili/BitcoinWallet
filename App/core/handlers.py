@@ -147,9 +147,13 @@ class TransactionValidationHandler(IHandle):
     wallet_repository: IWalletRepository
 
     def handle(self) -> CoreResponse:
+        print(self.address)
         balance_btc = self.wallet_repository.get_balance(address=self.address)
 
         if balance_btc < self.btc_amount:
+            print(balance_btc)
+            print(self.btc_amount)
+            print("HRRREEEEE")
             return CoreResponse(status_code=status.NOT_ENOUGH_BALANCE)
 
         return self.next_handler.handle()
@@ -201,7 +205,7 @@ class MakeTransactionHandler(IHandle):
 
         second_successful = self.wallet_repository.deposit_btc(
             address=self.second_wallet_address,
-            btc_amount=(100 - transaction_fee) * self.btc_amount,
+            btc_amount=(100 - transaction_fee) * self.btc_amount / 100,
         )
 
         if not second_successful:
