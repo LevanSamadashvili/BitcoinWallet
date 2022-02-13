@@ -14,7 +14,8 @@ from App.core.core_responses import (
     GetStatisticsResponse,
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
-    SaveTransactionResponse, RegisterUserResponse,
+    RegisterUserResponse,
+    SaveTransactionResponse,
 )
 from App.core.handlers import (
     CreateUserHandler,
@@ -216,7 +217,9 @@ class TestHandlers(unittest.TestCase):
 
     @mock.patch(
         "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
-        mock.MagicMock(return_value=Wallet(api_key="api", address="dzmaddress", balance_btc=0.35)),
+        mock.MagicMock(
+            return_value=Wallet(api_key="api", address="dzmaddress", balance_btc=0.35)
+        ),
     )
     def test_should_get_wallet(self) -> None:
         btc_usd: Callable[[float], float] = lambda x: 2 * x
@@ -292,6 +295,22 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.INVALID_WALLET
 
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
+        MagicMock(return_value=None),
+    )
+    def test_should_not_make_transaction_no_wallets(self) -> None:
+        handler = MakeTransactionHandler(
+            next_handler=NoHandler(),
+            first_wallet_address="first_wallet_address",
+            second_wallet_address="second_wallet_address",
+            btc_amount=1.0,
+            wallet_repository=self.wallet_repository,
+            transaction_fee_strategy=(lambda w1, w2: 0.0),
+        )
+
+        response = handler.handle()
+        assert response.status_code == status.INVALID_WALLET
 
     @mock.patch(
         "App.infra.repositories.wallet_repository.InMemoryWalletRepository.withdraw_btc",
@@ -347,6 +366,10 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.TRANSACTION_UNSUCCESSFUL
 
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
+        MagicMock(return_value=Wallet(api_key="dd", address="mm", balance_btc=10.0)),
+    )
     @mock.patch(
         "App.infra.repositories.wallet_repository.InMemoryWalletRepository.withdraw_btc",
         MagicMock(return_value=True),
@@ -479,6 +502,26 @@ class TestHandlers(unittest.TestCase):
 
     @mock.patch(
         "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
+        MagicMock(return_value=None),
+    )
+    def test_cant_save_transaction_invalid_wallet(self) -> None:
+        handler = SaveTransactionHandler(
+            next_handler=NoHandler(),
+            transactions_repository=self.transactions_repository,
+            wallet_repository=self.wallet_repository,
+            first_address="1",
+            second_address="2",
+            btc_amount=1.1,
+            statistics_repository=self.statistics_repository,
+            statistics_observer=StatisticsObserver(),
+            transaction_fee_strategy=default_transaction_fee,
+        )
+
+        response = handler.handle()
+        assert response.status_code == status.INVALID_WALLET
+
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
         MagicMock(return_value=Wallet(address="1", api_key="1", balance_btc=10.0)),
     )
     def test_should_save_transaction(self) -> None:
@@ -496,4 +539,3 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.TRANSACTION_SUCCESSFUL
         assert isinstance(response, SaveTransactionResponse)
-
