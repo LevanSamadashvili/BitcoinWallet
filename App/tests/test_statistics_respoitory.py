@@ -33,7 +33,7 @@ class TestStatisticsRepository(unittest.TestCase):
         result_set = self.cursor.execute("SELECT * FROM statistics").fetchall()
         assert len(result_set) == 0
 
-    def get_statistics(self) -> None:
+    def test_get_statistics(self) -> None:
         self.cursor.execute(
             "INSERT INTO statistics (num_transactions, profit) VALUES (?, ?)",
             (3, 10.0),
