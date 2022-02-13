@@ -46,3 +46,28 @@ class TestApi(unittest.TestCase):
         )
         print(response)
         assert response.status_code == 201
+
+    def test_get_transactions(self) -> None:
+        self.in_memory_core.user_repository.create_user("user1")
+        response = client.get(
+            "/transactions",
+            headers={"api-key": "user1"}
+        )
+        assert response.status_code == 200
+        assert len(response.json()['transactions']) == 0
+
+        self.in_memory_core.transactions_repository.add_transaction('address1', 'address2', 4.0)
+        self.in_memory_core.transactions_repository.add_transaction('address2', 'address1', 2.0)
+        response = client.get(
+            "/transactions",
+            headers={"api-key": "user1"}
+        )
+        print(response.reason)
+        assert response.status_code == 200
+        assert len(response.json()['transactions']) == 2
+
+        response = client.get(
+            "/transactions",
+            headers={"api-key": "user2"}
+        )
+        assert response.status_code == 404
