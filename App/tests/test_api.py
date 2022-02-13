@@ -62,7 +62,6 @@ class TestApi(unittest.TestCase):
             "/transactions",
             headers={"api-key": "user1"}
         )
-        print(response.reason)
         assert response.status_code == 200
         assert len(response.json()['transactions']) == 2
 
@@ -71,3 +70,28 @@ class TestApi(unittest.TestCase):
             headers={"api-key": "user2"}
         )
         assert response.status_code == 404
+
+    def test_get_wallet_transactions(self) -> None:
+        self.in_memory_core.user_repository.create_user("user1")
+        self.in_memory_core.wallet_repository.create_wallet("wallet1", "user1")
+        response = client.get(
+            "/wallets/wallet1/transactions",
+            headers={"api-key": "user1", "address": "wallet1"}
+        )
+        assert response.status_code == 200
+        assert len(response.json()['transactions']) == 0
+
+        self.in_memory_core.transactions_repository.add_transaction('wallet1', 'wallet2', 4.0)
+        self.in_memory_core.transactions_repository.add_transaction('wallet3', 'wallet2', 4.0)
+        response = client.get(
+            "/wallets/wallet1/transactions",
+            headers={"api-key": "user1", "address": "wallet1"}
+        )
+        assert response.status_code == 200
+        assert len(response.json()['transactions']) == 1
+
+        response = client.get(
+            "/wallets/wallet2/transactions",
+            headers={"api-key": "user1", "address": "wallet2"}
+        )
+        assert response.status_code == 403
