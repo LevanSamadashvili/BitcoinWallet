@@ -147,13 +147,9 @@ class TransactionValidationHandler(IHandle):
     wallet_repository: IWalletRepository
 
     def handle(self) -> CoreResponse:
-        print(self.address)
         balance_btc = self.wallet_repository.get_balance(address=self.address)
 
         if balance_btc < self.btc_amount:
-            print(balance_btc)
-            print(self.btc_amount)
-            print("HRRREEEEE")
             return CoreResponse(status_code=status.NOT_ENOUGH_BALANCE)
 
         return self.next_handler.handle()
@@ -332,7 +328,6 @@ class WalletBelongsToUserHandler(IHandle):
     def handle(self) -> CoreResponse:
         wallet = self.wallet_repository.get_wallet(self.address)
         if wallet is None:
-            print(self.address)
             return CoreResponse(status_code=status.INVALID_WALLET)
 
         if self.api_key != wallet.api_key:

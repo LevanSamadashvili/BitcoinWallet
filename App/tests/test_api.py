@@ -370,7 +370,6 @@ class TestApi(unittest.TestCase):
         assert len(second_wallet_transactions) > 0
         statistics = self.in_memory_core.statistics_repository.get_statistics()
         assert statistics is not None
-        print(statistics.profit)
         self.assertAlmostEqual(
             btc_amount
             * self.in_memory_core.transaction_fee_strategy(wallet_first, wallet_second)
