@@ -8,5 +8,3 @@ class IUserRepository(Protocol):
     def has_user(self, api_key: str) -> bool:
         pass
 
-    def is_admin(self, api_key: str) -> bool:
-        pass
