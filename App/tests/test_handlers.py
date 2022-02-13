@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 from App.core import status
 from App.core.constants import INITIAL_BITCOINS_WALLET, MAX_AVAILABLE_WALLETS
 from App.core.core_responses import (
-    CoreResponse,
+    ResponseContent,
     CreateWalletResponse,
     GetBalanceResponse,
     GetStatisticsResponse,
@@ -50,9 +50,9 @@ from App.infra.strategies import default_api_key_generator, default_transaction_
 class HandlerForTest(IHandle):
     was_called: bool = False
 
-    def handle(self) -> CoreResponse:
+    def handle(self) -> ResponseContent:
         self.was_called = True
-        return CoreResponse(status_code=0)
+        return ResponseContent(status_code=0)
 
 
 class TestHandlers(unittest.TestCase):
@@ -253,7 +253,7 @@ class TestHandlers(unittest.TestCase):
         )
 
         response = handler.handle()
-        assert response.status_code == status.TRANSACTION_UNSUCCESSFUL
+        assert response.status_code == status.NOT_ENOUGH_BALANCE
 
     def test_should_have_wallet(self) -> None:
         address = "address"

@@ -3,6 +3,7 @@ from fastapi import Depends, FastAPI, Response
 from App.core import status
 from App.core.bitcoin_core import BitcoinCore
 from App.core.btc_usd import default_btc_usd_convertor
+from App.core.constants import HTTP_DICT
 from App.core.core_requests import (
     CreateWalletRequest,
     GetBalanceRequest,
@@ -12,7 +13,7 @@ from App.core.core_requests import (
     MakeTransactionRequest,
     RegisterUserRequest,
 )
-from App.core.core_responses import CoreResponse
+from App.core.core_responses import ResponseContent
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
     InMemoryTransactionsRepository,
@@ -51,14 +52,14 @@ def get_core() -> BitcoinCore:
 def register_user(
     response: Response,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CoreResponse:
+) -> ResponseContent:
     """
     - Registers user
     - Returns API key that can authenticate all subsequent requests for this user
     """
 
     register_user_response = bitcoin_core.register_user(RegisterUserRequest())
-    response.status_code = register_user_response.status_code
+    response.status_code = HTTP_DICT[register_user_response.status_code]
     return register_user_response
 
 
@@ -76,7 +77,7 @@ def create_wallet(
     response: Response,
     api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CoreResponse:
+) -> ResponseContent:
     """
      - Requires API key
      - Create BTC wallet
@@ -89,7 +90,7 @@ def create_wallet(
     create_wallet_response = bitcoin_core.create_wallet(
         CreateWalletRequest(api_key=api_key)
     )
-    response.status_code = create_wallet_response.status_code
+    response.status_code = HTTP_DICT[create_wallet_response.status_code]
     return create_wallet_response
 
 
@@ -99,7 +100,7 @@ def get_balance(
     address: str,
     api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CoreResponse:
+) -> ResponseContent:
     """
     - Requires API key
     - Returns wallet address and balance in BTC and USD
@@ -108,7 +109,7 @@ def get_balance(
     get_balance_response = bitcoin_core.get_balance(
         GetBalanceRequest(api_key=api_key, address=address)
     )
-    response.status_code = get_balance_response.status_code
+    response.status_code = HTTP_DICT[get_balance_response.status_code]
     return get_balance_response
 
 
@@ -120,7 +121,7 @@ def make_transaction(
     second_wallet_address: str,
     btc_amount: float,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CoreResponse:
+) -> ResponseContent:
     """
     - Requires API key
     - Makes a transaction from one wallet to another
@@ -137,14 +138,14 @@ def make_transaction(
             btc_amount=btc_amount,
         )
     )
-    response.status_code = make_transaction_response.status_code
+    response.status_code = HTTP_DICT[make_transaction_response.status_code]
     return make_transaction_response
 
 
 @app.get("/transactions")
 def get_transactions(
     response: Response, api_key: str, bitcoin_core: BitcoinCore = Depends(get_core)
-) -> CoreResponse:
+) -> ResponseContent:
     """
     - Requires API key
     - Returns list of transactions
@@ -153,7 +154,7 @@ def get_transactions(
     get_transactions_response = bitcoin_core.get_transactions(
         GetTransactionsRequest(api_key=api_key)
     )
-    response.status_code = get_transactions_response.status_code
+    response.status_code = HTTP_DICT[get_transactions_response.status_code]
     return get_transactions_response
 
 
@@ -163,7 +164,7 @@ def get_wallet_transactions(
     api_key: str,
     address: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CoreResponse:
+) -> ResponseContent:
     """
     - Requires API key
     - returns transactions related to the wallet
@@ -173,7 +174,7 @@ def get_wallet_transactions(
         GetWalletTransactionsRequest(api_key=api_key, address=address)
     )
 
-    response.status_code = get_wallet_transactions_response.status_code
+    response.status_code = HTTP_DICT[get_wallet_transactions_response.status_code]
     return get_wallet_transactions_response
 
 
@@ -182,7 +183,7 @@ def get_statistics(
     response: Response,
     admin_api_key: str,
     bitcoin_core: BitcoinCore = Depends(get_core),
-) -> CoreResponse:
+) -> ResponseContent:
     """
     - Requires pre-set (hard coded) Admin API key
     - Returns the total number of transactions and platform profit
@@ -191,5 +192,5 @@ def get_statistics(
     get_statistics_response = bitcoin_core.get_statistics(
         GetStatisticsRequest(api_key=admin_api_key)
     )
-    response.status_code = get_statistics_response.status_code
+    response.status_code = HTTP_DICT[get_statistics_response.status_code]
     return get_statistics_response

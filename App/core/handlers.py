@@ -8,14 +8,14 @@ from App.core.constants import (
     MAX_AVAILABLE_WALLETS,
 )
 from App.core.core_responses import (
-    CoreResponse,
+    ResponseContent,
     CreateWalletResponse,
     GetBalanceResponse,
     GetStatisticsResponse,
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
     RegisterUserResponse,
-    SaveTransactionResponse,
+    SaveTransactionResponse, CoreResponse,
 )
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
@@ -44,7 +44,7 @@ class CreateUserHandler(IHandle):
         user_created = self.user_repository.create_user(api_key)
 
         if not user_created:
-            return CoreResponse(status_code=status.USER_REGISTRATION_ERROR)
+            return ResponseContent(status_code=status.USER_REGISTRATION_ERROR)
 
         return RegisterUserResponse(
             status_code=status.USER_CREATED_SUCCESSFULLY, api_key=api_key
@@ -61,7 +61,7 @@ class HasUserHandler(IHandle):
         has_user = self.user_repository.has_user(api_key=self.api_key)
 
         if not has_user:
-            return CoreResponse(status_code=status.INCORRECT_API_KEY)
+            return ResponseContent(status_code=status.INCORRECT_API_KEY)
 
         return self.next_handler.handle()
 
@@ -76,7 +76,7 @@ class MaxWalletsHandler(IHandle):
         num_wallets = self.wallet_repository.get_num_wallets(api_key=self.api_key)
 
         if num_wallets >= MAX_AVAILABLE_WALLETS:
-            return CoreResponse(status_code=status.CANT_CREATE_MORE_WALLETS)
+            return ResponseContent(status_code=status.CANT_CREATE_MORE_WALLETS)
 
         return self.next_handler.handle()
 
@@ -96,7 +96,7 @@ class CreateWalletHandler(IHandle):
         )
 
         if not wallet_created:
-            return CoreResponse(status_code=status.WALLET_CREATION_ERROR)
+            return ResponseContent(status_code=status.WALLET_CREATION_ERROR)
 
         self.wallet_repository.deposit_btc(
             address=address, btc_amount=INITIAL_BITCOINS_WALLET
@@ -122,7 +122,7 @@ class GetWalletHandler(IHandle):
         wallet = self.wallet_repository.get_wallet(address=self.address)
 
         if wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
+            return ResponseContent(status_code=status.INVALID_WALLET)
 
         balance_usd = self.btc_usd_convertor(wallet.balance_btc)
         return GetBalanceResponse(
@@ -144,7 +144,7 @@ class TransactionValidationHandler(IHandle):
         balance_btc = self.wallet_repository.get_balance(address=self.address)
 
         if balance_btc < self.btc_amount:
-            return CoreResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
+            return ResponseContent(status_code=status.NOT_ENOUGH_BALANCE)
 
         return self.next_handler.handle()
 
@@ -159,7 +159,7 @@ class HasWalletHandler(IHandle):
         wallet_exists = self.wallet_repository.has_wallet(address=self.address)
 
         if not wallet_exists:
-            return CoreResponse(status_code=status.INVALID_WALLET)
+            return ResponseContent(status_code=status.INVALID_WALLET)
 
         return self.next_handler.handle()
 
@@ -182,7 +182,7 @@ class MakeTransactionHandler(IHandle):
         )
 
         if first_wallet is None or second_wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
+            return ResponseContent(status_code=status.INVALID_WALLET)
 
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
@@ -191,7 +191,7 @@ class MakeTransactionHandler(IHandle):
         )
 
         if not first_successful:
-            return CoreResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
+            return ResponseContent(status_code=status.TRANSACTION_UNSUCCESSFUL)
 
         second_successful = self.wallet_repository.deposit_btc(
             address=self.second_wallet_address,
@@ -202,7 +202,7 @@ class MakeTransactionHandler(IHandle):
             self.wallet_repository.deposit_btc(
                 address=self.first_wallet_address, btc_amount=self.btc_amount
             )
-            return CoreResponse(status_code=status.TRANSACTION_UNSUCCESSFUL)
+            return ResponseContent(status_code=status.TRANSACTION_UNSUCCESSFUL)
 
         return self.next_handler.handle()
 
@@ -223,12 +223,12 @@ class SaveTransactionHandler(IHandle):
         first_wallet = self.wallet_repository.get_wallet(address=self.first_address)
 
         if first_wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
+            return ResponseContent(status_code=status.INVALID_WALLET)
 
         second_wallet = self.wallet_repository.get_wallet(address=self.second_address)
 
         if second_wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
+            return ResponseContent(status_code=status.INVALID_WALLET)
 
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
@@ -254,7 +254,7 @@ class GetTransactionHandler(IHandle):
     def handle(self) -> CoreResponse:
         transactions = self.transactions_repository.get_all_transactions()
         if transactions is None:
-            return CoreResponse(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL)
+            return ResponseContent(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL)
 
         return GetTransactionsResponse(
             status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions
@@ -272,7 +272,7 @@ class GetWalletTransactionsHandler(IHandle):
             address=self.address
         )
         if transactions is None:
-            return CoreResponse(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL)
+            return ResponseContent(status_code=status.FETCH_TRANSACTIONS_UNSUCCESSFUL)
 
         return GetWalletTransactionsResponse(
             status_code=status.FETCH_TRANSACTIONS_SUCCESSFUL, transactions=transactions
@@ -301,13 +301,13 @@ class GetStatisticsHandler(IHandle):
         if statistics is None:
             return CoreResponse(status_code=status.FETCH_STATISTICS_UNSUCCESSFUL)
 
-        return GetStatisticsResponse(
-            status_code=status.FETCH_STATISTICS_SUCCESSFUL,
-            total_num_transactions=statistics.num_transactions,
-            platform_profit=statistics.profit,
-        )
+        return CoreResponse(status_code=status.FETCH_STATISTICS_SUCCESSFUL,
+                            response_content=GetStatisticsResponse(
+                                total_num_transactions=statistics.num_transactions,
+                                platform_profit=statistics.profit,
+                            ))
 
 
 class NoHandler(IHandle):
     def handle(self) -> CoreResponse:
-        return CoreResponse(status_code=0)
+        return CoreResponse()
