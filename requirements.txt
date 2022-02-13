@@ -5,6 +5,7 @@ flake8
 requests
 pytest
 fastapi
+starlette
 uvicorn[standard]
 coverage
 types-orjson
