@@ -23,13 +23,18 @@ class InMemoryUserRepository(IUserRepository):
 class SQLiteUserRepository(IUserRepository):
     connection: Connection
 
+    def __init__(self, connection: Connection):
+        self.connection = connection
+
     def create_user(self, api_key: str) -> bool:
         cursor = self.connection.cursor()
         rows_modified = cursor.execute(
             "INSERT INTO users (api_key) VALUES (?)", (api_key,)
         ).rowcount
         self.connection.commit()
-        return rows_modified > 0
+        if rows_modified > 0:
+            return True
+        return False
 
     def has_user(self, api_key: str) -> bool:
         cursor = self.connection.cursor()

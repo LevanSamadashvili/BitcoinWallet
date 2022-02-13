@@ -41,6 +41,9 @@ class InMemoryTransactionsRepository(ITransactionsRepository):
 class SQLiteTransactionsRepository(ITransactionsRepository):
     connection: Connection
 
+    def __init__(self, connection: Connection):
+        self.connection = connection
+
     def add_transaction(
         self, first_address: str, second_address: str, amount: float
     ) -> bool:
@@ -50,7 +53,9 @@ class SQLiteTransactionsRepository(ITransactionsRepository):
             (first_address, second_address, amount),
         ).rowcount
         self.connection.commit()
-        return rows_modified > 0
+        if rows_modified > 0:
+            return True
+        return False
 
     def get_all_transactions(self) -> Optional[list[Transaction]]:
         cursor = self.connection.cursor()

@@ -21,8 +21,12 @@ class InMemoryStatisticsRepository(IStatisticsRepository):
 class SQLiteStatisticsRepository(IStatisticsRepository):
     connection: Connection
 
+    def __init__(self, connection: Connection):
+        self.connection = connection
+
     def get_statistics(self) -> Optional[Statistics]:
-        for (num_transactions, profit) in self.cursor.execute(
+        cursor = self.connection.cursor()
+        for (num_transactions, profit) in cursor.execute(
             "SELECT * FROM statistics"
         ):
             return Statistics(num_transactions=num_transactions, profit=profit)
