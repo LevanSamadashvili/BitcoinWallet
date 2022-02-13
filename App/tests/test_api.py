@@ -63,41 +63,44 @@ class TestApi(unittest.TestCase):
     def test_make_transaction_validation(self) -> None:
         response = client.post(
             "/transactions",
-            json={"api-key": None,
-                  "first-wallet-address": "test",
-                  "second-wallet-address": "test",
-                  "btc-amount": 0
-                  },
+            json={
+                "api-key": None,
+                "first-wallet-address": "test",
+                "second-wallet-address": "test",
+                "btc-amount": 0,
+            },
         )
         assert response.status_code == 400
         response = client.post(
             "/transactions",
-            json={"api-key": "None",
-                  "first-wallet-address": None,
-                  "second-wallet-address": "None",
-                  "btc-amount": 0
-                  },
+            json={
+                "api-key": "None",
+                "first-wallet-address": None,
+                "second-wallet-address": "None",
+                "btc-amount": 0,
+            },
         )
         assert response.status_code == 400
         response = client.post(
             "/transactions",
-            json={"api-key": "None",
-                  "first-wallet-address": "None",
-                  "second-wallet-address": None,
-                  "btc-amount": 0
-                  },
+            json={
+                "api-key": "None",
+                "first-wallet-address": "None",
+                "second-wallet-address": None,
+                "btc-amount": 0,
+            },
         )
         assert response.status_code == 400
         response = client.post(
             "/transactions",
-            json={"api-key": "None",
-                  "first-wallet-address": "None",
-                  "second-wallet-address": "None",
-                  "btc-amount": None
-                  },
+            json={
+                "api-key": "None",
+                "first-wallet-address": "None",
+                "second-wallet-address": "None",
+                "btc-amount": None,
+            },
         )
         assert response.status_code == 400
-
 
     def test_make_transaction_successful_transaction(self) -> None:
         api_key = "nini_api_key"
@@ -107,28 +110,54 @@ class TestApi(unittest.TestCase):
         wallet_first = Wallet(api_key=api_key, address=first_wallet, balance_btc=10)
         wallet_second = Wallet(api_key=api_key, address=second_wallet, balance_btc=0)
 
-        self.in_memory_core.wallet_repository.create_wallet(address=first_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.create_wallet(address=second_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.deposit_btc(address=first_wallet, btc_amount=10)
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=first_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=second_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.deposit_btc(
+            address=first_wallet, btc_amount=10
+        )
         btc_amount = 2
         response = client.post(
             "/transactions",
-            headers={"api-key": api_key,
-                     "first-wallet-address": first_wallet,
-                     "second-wallet-address": second_wallet,
-                     "btc-amount": "2"
-                     },
+            headers={
+                "api-key": api_key,
+                "first-wallet-address": first_wallet,
+                "second-wallet-address": second_wallet,
+                "btc-amount": "2",
+            },
         )
-        updated_balance = btc_amount*(1 - self.in_memory_core.transaction_fee_strategy(wallet_first, wallet_second))
+        updated_balance = btc_amount * (
+            1
+            - self.in_memory_core.transaction_fee_strategy(wallet_first, wallet_second)
+        )
         assert response.status_code == 200
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(first_wallet), 8)
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(second_wallet), updated_balance)
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(address=first_wallet)) > 0
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(address=second_wallet)) > 0
-        assert self.in_memory_core.transactions_repository.get_wallet_transactions(address=second_wallet)[0] \
-                   .amount == 2
-        assert self.in_memory_core.transactions_repository.get_wallet_transactions(address=first_wallet)[0] \
-                   .amount == 2
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(first_wallet), 8
+        )
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(second_wallet),
+            updated_balance,
+        )
+        first_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                address=first_wallet
+            )
+        )
+        assert first_wallet_transactions is not None
+        assert len(first_wallet_transactions) > 0
+        second_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                address=second_wallet
+            )
+        )
+        assert second_wallet_transactions is not None
+        assert len(second_wallet_transactions) > 0
+        assert second_wallet_transactions[0].amount == 2
+
+        assert first_wallet_transactions[0].amount == 2
 
     def test_make_transactions_wallet_doesnt_exist(self) -> None:
         api_key = "nini_api_key1"
@@ -136,31 +165,53 @@ class TestApi(unittest.TestCase):
         first_wallet = "nini_first_wallet1"
         second_wallet = "nini_second_wallet2"
 
-        self.in_memory_core.wallet_repository.create_wallet(address=first_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.deposit_btc(address=first_wallet, btc_amount=10)
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=first_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.deposit_btc(
+            address=first_wallet, btc_amount=10
+        )
         response = client.post(
             "/transactions",
-            headers={"api-key": api_key,
-                     "first-wallet-address": first_wallet,
-                     "second-wallet-address": second_wallet,
-                     "btc-amount": "2"
-                     },
+            headers={
+                "api-key": api_key,
+                "first-wallet-address": first_wallet,
+                "second-wallet-address": second_wallet,
+                "btc-amount": "2",
+            },
         )
         assert response.status_code == 403
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(first_wallet), 10)
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(address=first_wallet)) == 0
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(first_wallet), 10
+        )
+        first_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                address=first_wallet
+            )
+        )
+        assert first_wallet_transactions is not None
+        assert len(first_wallet_transactions) == 0
 
         response = client.post(
             "/transactions",
-            headers={"api-key": api_key,
-                     "first-wallet-address": second_wallet,
-                     "second-wallet-address": first_wallet,
-                     "btc-amount": "2"
-                     },
+            headers={
+                "api-key": api_key,
+                "first-wallet-address": second_wallet,
+                "second-wallet-address": first_wallet,
+                "btc-amount": "2",
+            },
         )
         assert response.status_code == 403
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(first_wallet), 10)
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(address=first_wallet)) == 0
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(first_wallet), 10
+        )
+        first_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                address=first_wallet
+            )
+        )
+        assert first_wallet_transactions is not None
+        assert len(first_wallet_transactions) == 0
 
     def test_make_transaction_invalid_api_key(self) -> None:
         api_key = "nini_api_key2"
@@ -168,22 +219,45 @@ class TestApi(unittest.TestCase):
         first_wallet = "nini_first_wallet"
         second_wallet = "nini_second_wallet"
 
-        self.in_memory_core.wallet_repository.create_wallet(address=first_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.create_wallet(address=second_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.deposit_btc(address=first_wallet, btc_amount=5)
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=first_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=second_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.deposit_btc(
+            address=first_wallet, btc_amount=5
+        )
         response = client.post(
             "/transactions",
-            headers={"api-key": "api_key3",
-                     "first-wallet-address": first_wallet,
-                     "second-wallet-address": second_wallet,
-                     "btc-amount": "2"
-                     },
+            headers={
+                "api-key": "api_key3",
+                "first-wallet-address": first_wallet,
+                "second-wallet-address": second_wallet,
+                "btc-amount": "2",
+            },
         )
         assert response.status_code == 404
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(first_wallet), 5)
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(second_wallet), 0)
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(address=first_wallet)) == 0
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(address=second_wallet)) == 0
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(first_wallet), 5
+        )
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(second_wallet), 0
+        )
+        first_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                address=first_wallet
+            )
+        )
+        assert first_wallet_transactions is not None
+        assert len(first_wallet_transactions) == 0
+        second_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                address=second_wallet
+            )
+        )
+        assert second_wallet_transactions is not None
+        assert len(second_wallet_transactions) == 0
 
     def test_make_transaction_not_enough_money(self) -> None:
         api_key = "nini_api_key3"
@@ -191,24 +265,47 @@ class TestApi(unittest.TestCase):
         first_wallet = "nini_first_wallet_1"
         second_wallet = "nini_second_wallet_2"
 
-        self.in_memory_core.wallet_repository.create_wallet(address=first_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.create_wallet(address=second_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.deposit_btc(address=first_wallet, btc_amount=4)
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=first_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=second_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.deposit_btc(
+            address=first_wallet, btc_amount=4
+        )
         response = client.post(
             "/transactions",
-            headers={"api-key": api_key,
-                     "first-wallet-address": first_wallet,
-                     "second-wallet-address": second_wallet,
-                     "btc-amount": "5"
-                     },
+            headers={
+                "api-key": api_key,
+                "first-wallet-address": first_wallet,
+                "second-wallet-address": second_wallet,
+                "btc-amount": "5",
+            },
         )
         assert response.status_code == 452
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(first_wallet), 4)
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(second_wallet), 0)
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(first_wallet)) == 0
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(second_wallet)) == 0
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(first_wallet), 4
+        )
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(second_wallet), 0
+        )
+        first_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                first_wallet
+            )
+        )
+        assert first_wallet_transactions is not None
+        assert len(first_wallet_transactions) == 0
+        second_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                second_wallet
+            )
+        )
+        assert second_wallet_transactions is not None
+        assert len(second_wallet_transactions) == 0
 
-    def test_make_transaction_unsuccessful(self) -> None:
+    def test_make_transaction_with_service_fee(self) -> None:
         api_key = "nini_api_key4"
         second_api_key = "nini_api_key_5"
         self.in_memory_core.user_repository.create_user(api_key=api_key)
@@ -216,25 +313,64 @@ class TestApi(unittest.TestCase):
         first_wallet = "nini_first_wallet_111"
         second_wallet = "nini_second_wallet_211"
         wallet_first = Wallet(api_key=api_key, address=first_wallet, balance_btc=10)
-        wallet_second = Wallet(api_key=second_api_key, address=second_wallet, balance_btc=2)
-        self.in_memory_core.wallet_repository.create_wallet(address=first_wallet, api_key=api_key)
-        self.in_memory_core.wallet_repository.create_wallet(address=second_wallet, api_key=second_api_key)
-        self.in_memory_core.wallet_repository.deposit_btc(address=first_wallet, btc_amount=10)
-        self.in_memory_core.wallet_repository.deposit_btc(address=second_wallet, btc_amount=2)
-        print(self.in_memory_core.wallet_repository.get_balance(first_wallet))
+        wallet_second = Wallet(
+            api_key=second_api_key, address=second_wallet, balance_btc=2
+        )
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=first_wallet, api_key=api_key
+        )
+        self.in_memory_core.wallet_repository.create_wallet(
+            address=second_wallet, api_key=second_api_key
+        )
+        self.in_memory_core.wallet_repository.deposit_btc(
+            address=first_wallet, btc_amount=10
+        )
+        self.in_memory_core.wallet_repository.deposit_btc(
+            address=second_wallet, btc_amount=2
+        )
         btc_amount = 1
         response = client.post(
             "/transactions",
-            headers={"api-key": api_key,
-                     "first-wallet-address": first_wallet,
-                     "second-wallet-address": second_wallet,
-                     "btc-amount": "1"
-                     },
+            headers={
+                "api-key": api_key,
+                "first-wallet-address": first_wallet,
+                "second-wallet-address": second_wallet,
+                "btc-amount": "1",
+            },
         )
-        updated_balance = 2 + btc_amount*(1-self.in_memory_core.transaction_fee_strategy(wallet_first, wallet_second)/100)
+        updated_balance = 2 + btc_amount * (
+            1
+            - self.in_memory_core.transaction_fee_strategy(wallet_first, wallet_second)
+            / 100
+        )
         assert response.status_code == 200
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(first_wallet),
-                               9)
-        self.assertAlmostEqual(self.in_memory_core.wallet_repository.get_balance(second_wallet), updated_balance)
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(first_wallet)) > 0
-        assert len(self.in_memory_core.transactions_repository.get_wallet_transactions(second_wallet)) > 0
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(first_wallet), 9
+        )
+        self.assertAlmostEqual(
+            self.in_memory_core.wallet_repository.get_balance(second_wallet),
+            updated_balance,
+        )
+        first_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                first_wallet
+            )
+        )
+        assert first_wallet_transactions is not None
+        assert len(first_wallet_transactions) > 0
+        second_wallet_transactions = (
+            self.in_memory_core.transactions_repository.get_wallet_transactions(
+                second_wallet
+            )
+        )
+        assert second_wallet_transactions is not None
+        assert len(second_wallet_transactions) > 0
+        statistics = self.in_memory_core.statistics_repository.get_statistics()
+        assert statistics is not None
+        print(statistics.profit)
+        self.assertAlmostEqual(
+            btc_amount
+            * self.in_memory_core.transaction_fee_strategy(wallet_first, wallet_second)
+            / 100,
+            statistics.profit,
+        )
