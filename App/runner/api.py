@@ -20,9 +20,9 @@ from App.infra.repositories.transactions_repository import (
 from App.infra.repositories.user_repository import InMemoryUserRepository
 from App.infra.repositories.wallet_repository import InMemoryWalletRepository
 from App.infra.strategies import (
-    default_address_generator,
-    default_api_key_generator,
     default_transaction_fee,
+    random_address_generator,
+    random_api_key_generator,
 )
 
 app = FastAPI()
@@ -34,8 +34,8 @@ def get_core() -> BitcoinCore:
         wallet_repository=InMemoryWalletRepository(),
         transactions_repository=InMemoryTransactionsRepository(),
         statistics_repository=InMemoryStatisticsRepository(),
-        api_key_generator_strategy=default_api_key_generator,
-        address_generator_strategy=default_address_generator,
+        api_key_generator_strategy=random_api_key_generator,
+        address_generator_strategy=random_address_generator,
         btc_usd_convertor_strategy=default_btc_usd_convertor,
         transaction_fee_strategy=default_transaction_fee,
     )
