@@ -21,7 +21,7 @@ def random_address_generator() -> str:
 
 
 def random_api_key_generator() -> str:
-    chars = string.ascii_letters + string.digits + string.punctuation
+    chars = string.ascii_letters + string.digits
     address = "".join(random.choice(chars) for i in range(constants.API_KEY_LENGTH))
     return address
 

@@ -8,6 +8,7 @@ fastapi
 starlette
 uvicorn[standard]
 coverage
+sqlalchemy
 types-orjson
 types-requests
 types-ujson
