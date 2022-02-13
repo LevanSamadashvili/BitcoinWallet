@@ -133,7 +133,6 @@ def get_balance(
     - Requires API key
     - Returns wallet address and balance in BTC and USD
     """
-
     if address is None or api_key is None:
         response.status_code = 400
         return ResponseContent()
