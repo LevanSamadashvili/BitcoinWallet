@@ -1,7 +1,7 @@
 import unittest
 
-from starlette.responses import Response
 from fastapi.testclient import TestClient
+
 from App.core.bitcoin_core import BitcoinCore
 from App.infra.btc_usd import default_btc_usd_convertor
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
@@ -15,7 +15,7 @@ from App.infra.strategies import (
     default_api_key_generator,
     default_transaction_fee,
 )
-from App.runner.api import register_user, get_core, app
+from App.runner.api import app, get_core
 
 
 def get_in_memory_core() -> BitcoinCore:
