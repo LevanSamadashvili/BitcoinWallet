@@ -10,7 +10,7 @@ from App.core.core_requests import (
     MakeTransactionRequest,
     RegisterUserRequest,
 )
-from App.core.core_responses import ResponseContent
+from App.core.core_responses import CoreResponse
 from App.core.handlers import (
     CreateUserHandler,
     CreateWalletHandler,
@@ -49,7 +49,7 @@ class BitcoinCore:
     btc_usd_convertor_strategy: Callable[[float], float]
     transaction_fee_strategy: Callable[[Wallet, Wallet], float]
 
-    def register_user(self, _: RegisterUserRequest) -> ResponseContent:
+    def register_user(self, _: RegisterUserRequest) -> CoreResponse:
         handler = CreateUserHandler(
             next_handler=NoHandler(),
             user_repository=self.user_repository,
@@ -58,7 +58,7 @@ class BitcoinCore:
 
         return handler.handle()
 
-    def create_wallet(self, request: CreateWalletRequest) -> ResponseContent:
+    def create_wallet(self, request: CreateWalletRequest) -> CoreResponse:
         handler = HasUserHandler(
             MaxWalletsHandler(
                 CreateWalletHandler(
@@ -77,7 +77,7 @@ class BitcoinCore:
 
         return handler.handle()
 
-    def get_balance(self, request: GetBalanceRequest) -> ResponseContent:
+    def get_balance(self, request: GetBalanceRequest) -> CoreResponse:
         handler = HasUserHandler(
             next_handler=GetWalletHandler(
                 next_handler=NoHandler(),
@@ -91,7 +91,7 @@ class BitcoinCore:
 
         return handler.handle()
 
-    def make_transaction(self, request: MakeTransactionRequest) -> ResponseContent:
+    def make_transaction(self, request: MakeTransactionRequest) -> CoreResponse:
         handler = HasUserHandler(
             next_handler=HasWalletHandler(
                 next_handler=HasWalletHandler(
@@ -130,7 +130,7 @@ class BitcoinCore:
 
         return handler.handle()
 
-    def get_transactions(self, request: GetTransactionsRequest) -> ResponseContent:
+    def get_transactions(self, request: GetTransactionsRequest) -> CoreResponse:
 
         handler = HasUserHandler(
             next_handler=GetTransactionHandler(
@@ -144,7 +144,7 @@ class BitcoinCore:
 
     def get_wallet_transactions(
         self, request: GetWalletTransactionsRequest
-    ) -> ResponseContent:
+    ) -> CoreResponse:
 
         handler = HasWalletHandler(
             next_handler=GetWalletTransactionsHandler(
@@ -157,7 +157,7 @@ class BitcoinCore:
         )
         return handler.handle()
 
-    def get_statistics(self, request: GetStatisticsRequest) -> ResponseContent:
+    def get_statistics(self, request: GetStatisticsRequest) -> CoreResponse:
         handler = IsAdminHandler(
             next_handler=GetStatisticsHandler(
                 next_handler=NoHandler(),

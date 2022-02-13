@@ -14,7 +14,7 @@ from App.core.core_responses import (
     GetWalletTransactionsResponse,
     RegisterUserResponse,
     ResponseContent,
-    SaveTransactionResponse,
+    SaveTransactionResponse, CoreResponse,
 )
 from App.core.handlers import (
     CreateUserHandler,
@@ -50,9 +50,9 @@ from App.infra.strategies import default_api_key_generator, default_transaction_
 class HandlerForTest(IHandle):
     was_called: bool = False
 
-    def handle(self) -> ResponseContent:
+    def handle(self) -> CoreResponse:
         self.was_called = True
-        return ResponseContent(status_code=0)
+        return CoreResponse(status_code=status.DEFAULT_STATUS_CODE)
 
 
 class TestHandlers(unittest.TestCase):
@@ -68,7 +68,7 @@ class TestHandlers(unittest.TestCase):
         handler = NoHandler()
         response = handler.handle()
 
-        assert response.status_code == 0
+        assert response.status_code == status.DEFAULT_STATUS_CODE
 
     def test_should_create_user(self) -> None:
         handler = CreateUserHandler(
