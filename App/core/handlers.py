@@ -14,7 +14,8 @@ from App.core.core_responses import (
     GetStatisticsResponse,
     GetTransactionsResponse,
     GetWalletTransactionsResponse,
-    RegisterUserResponse, SaveTransactionResponse,
+    RegisterUserResponse,
+    SaveTransactionResponse,
 )
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
@@ -245,7 +246,10 @@ class SaveTransactionHandler(IHandle):
             statistics_repository=self.statistics_repository,
         )
 
-        return CoreResponse(status_code=status.TRANSACTION_SUCCESSFUL, response_content=SaveTransactionResponse())
+        return CoreResponse(
+            status_code=status.TRANSACTION_SUCCESSFUL,
+            response_content=SaveTransactionResponse(),
+        )
 
 
 @dataclass

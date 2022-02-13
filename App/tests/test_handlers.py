@@ -5,7 +5,11 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from App.core import status
-from App.core.constants import INITIAL_BITCOINS_WALLET, MAX_AVAILABLE_WALLETS, ADMIN_API_KEY
+from App.core.constants import (
+    ADMIN_API_KEY,
+    INITIAL_BITCOINS_WALLET,
+    MAX_AVAILABLE_WALLETS,
+)
 from App.core.core_responses import (
     CoreResponse,
     CreateWalletResponse,
@@ -53,6 +57,7 @@ class HandlerForTest(IHandle):
     def handle(self) -> CoreResponse:
         self.was_called = True
         return CoreResponse(status_code=status.DEFAULT_STATUS_CODE)
+
 
 class TestHandlers(unittest.TestCase):
     def setUp(self) -> None:
@@ -178,7 +183,9 @@ class TestHandlers(unittest.TestCase):
         assert response.status_code == status.WALLET_CREATED_SUCCESSFULLY
         assert isinstance(response.response_content, CreateWalletResponse)
         assert response.response_content.address == address_generator()
-        assert response.response_content.balance_usd == btc_usd_convertor(INITIAL_BITCOINS_WALLET)
+        assert response.response_content.balance_usd == btc_usd_convertor(
+            INITIAL_BITCOINS_WALLET
+        )
         assert response.response_content.balance_btc == INITIAL_BITCOINS_WALLET
 
     @mock.patch(
@@ -230,7 +237,9 @@ class TestHandlers(unittest.TestCase):
         assert response.status_code == status.GOT_BALANCE_SUCCESSFULLY
         assert isinstance(response.response_content, GetBalanceResponse)
         assert response.response_content.balance_btc == 0.35
-        assert response.response_content.balance_usd == btc_usd(response.response_content.balance_btc)
+        assert response.response_content.balance_usd == btc_usd(
+            response.response_content.balance_btc
+        )
         assert response.response_content.address == "dzmaddress"
 
     @mock.patch(
