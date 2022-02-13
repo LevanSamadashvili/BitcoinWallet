@@ -12,7 +12,9 @@ from App.infra.repositories.transactions_repository import (
 from App.infra.repositories.user_repository import InMemoryUserRepository
 from App.infra.repositories.wallet_repository import InMemoryWalletRepository
 from App.infra.strategies import (
-    default_transaction_fee, random_api_key_generator, random_address_generator,
+    default_transaction_fee,
+    random_address_generator,
+    random_api_key_generator,
 )
 from App.runner.api import app, get_core
 
@@ -80,7 +82,9 @@ class TestApi(unittest.TestCase):
     def test_get_balance_not_your_wallet(self) -> None:
         self.in_memory_core.user_repository.create_user("tamo3")
         self.in_memory_core.user_repository.create_user("tamo2")
-        self.in_memory_core.wallet_repository.create_wallet(api_key="tamo2", address="tamo22")
+        self.in_memory_core.wallet_repository.create_wallet(
+            api_key="tamo2", address="tamo22"
+        )
         params: dict[str, Optional[str]] = dict()
         params["api-key"] = "tamo3"
         params["address"] = "tamo22"
@@ -92,7 +96,9 @@ class TestApi(unittest.TestCase):
 
     def test_get_balance_successfully(self) -> None:
         self.in_memory_core.user_repository.create_user("tamo4")
-        self.in_memory_core.wallet_repository.create_wallet(api_key="tamo4", address="tamo44")
+        self.in_memory_core.wallet_repository.create_wallet(
+            api_key="tamo4", address="tamo44"
+        )
         assert self.in_memory_core.wallet_repository.get_wallet("tamo44") is not None
         params: dict[str, Optional[str]] = dict()
         params["api-key"] = "tamo4"
@@ -101,10 +107,6 @@ class TestApi(unittest.TestCase):
             headers=params,
         )
         assert response.status_code == 200
-        assert response.json()['address'] == "tamo44"
-        assert response.json()['balance_usd'] == 0
-        assert response.json()['balance_btc'] == 0
-
-
-
-
+        assert response.json()["address"] == "tamo44"
+        assert response.json()["balance_usd"] == 0
+        assert response.json()["balance_btc"] == 0
