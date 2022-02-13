@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from App.core import status
 from App.core.models.transaction import Transaction
 
 
@@ -55,5 +56,5 @@ class GetStatisticsResponse(ResponseContent):
 
 @dataclass
 class CoreResponse:
-    status_code: int = 0
+    status_code: int = status.DEFAULT_STATUS_CODE
     response_content: ResponseContent = ResponseContent()
