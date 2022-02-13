@@ -5,7 +5,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from App.core import status
-from App.core.bitcoin_core import default_api_key_generator, default_transaction_fee
 from App.core.constants import INITIAL_BITCOINS_WALLET, MAX_AVAILABLE_WALLETS
 from App.core.core_responses import (
     CoreResponse,
@@ -44,6 +43,7 @@ from App.infra.repositories.transactions_repository import (
 )
 from App.infra.repositories.user_repository import InMemoryUserRepository
 from App.infra.repositories.wallet_repository import InMemoryWalletRepository
+from App.infra.strategies import default_api_key_generator, default_transaction_fee
 
 
 @dataclass
