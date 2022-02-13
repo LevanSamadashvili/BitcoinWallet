@@ -6,9 +6,8 @@ from fastapi.testclient import TestClient
 
 from App.core import constants
 from App.core.bitcoin_core import BitcoinCore
-from App.core.models.wallet import Wallet
 from App.core.constants import INITIAL_BITCOINS_WALLET, MAX_AVAILABLE_WALLETS
-from App.infra.btc_usd import default_btc_usd_convertor
+from App.core.models.wallet import Wallet
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
     InMemoryTransactionsRepository,
@@ -31,7 +30,7 @@ def get_in_memory_core() -> BitcoinCore:
         statistics_repository=InMemoryStatisticsRepository(),
         api_key_generator_strategy=random_api_key_generator,
         address_generator_strategy=random_address_generator,
-        btc_usd_convertor_strategy=default_btc_usd_convertor,
+        btc_usd_convertor_strategy=lambda x: 3 * x,
         transaction_fee_strategy=default_transaction_fee,
     )
 

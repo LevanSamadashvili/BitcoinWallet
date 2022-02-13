@@ -56,5 +56,6 @@ class GetStatisticsResponse(ResponseContent):
 
 @dataclass
 class CoreResponse:
+    message: str = ""
     status_code: int = status.DEFAULT_STATUS_CODE
     response_content: ResponseContent = ResponseContent()
