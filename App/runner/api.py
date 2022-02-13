@@ -1,12 +1,7 @@
 from fastapi import Depends, FastAPI, Response
 
 from App.core import status
-from App.core.bitcoin_core import (
-    BitcoinCore,
-    default_address_generator,
-    default_api_key_generator,
-    default_transaction_fee,
-)
+from App.core.bitcoin_core import BitcoinCore, default_transaction_fee
 from App.core.btc_usd import default_btc_usd_convertor
 from App.core.core_requests import (
     CreateWalletRequest,
@@ -24,6 +19,7 @@ from App.infra.repositories.transactions_repository import (
 )
 from App.infra.repositories.user_repository import InMemoryUserRepository
 from App.infra.repositories.wallet_repository import InMemoryWalletRepository
+from App.infra.strategies import default_address_generator, default_api_key_generator
 
 app = FastAPI()
 

@@ -10,4 +10,3 @@ def test_address_generator() -> None:
 def test_api_key_generator() -> None:
     add = random_api_key_generator()
     assert len(add) == constants.API_KEY_LENGTH
-
