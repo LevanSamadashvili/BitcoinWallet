@@ -26,6 +26,7 @@ from App.core.handlers import (
     NoHandler,
     SaveTransactionHandler,
     TransactionValidationHandler,
+    WalletBelongsToUserHandler,
 )
 from App.core.models.wallet import Wallet
 from App.core.observer import StatisticsObserver
@@ -79,11 +80,16 @@ class BitcoinCore:
 
     def get_balance(self, request: GetBalanceRequest) -> CoreResponse:
         handler = HasUserHandler(
-            next_handler=GetWalletHandler(
-                next_handler=NoHandler(),
+            next_handler=WalletBelongsToUserHandler(
+                next_handler=GetWalletHandler(
+                    next_handler=NoHandler(),
+                    address=request.address,
+                    wallet_repository=self.wallet_repository,
+                    btc_usd_convertor=self.btc_usd_convertor_strategy,
+                ),
+                api_key=request.api_key,
                 address=request.address,
                 wallet_repository=self.wallet_repository,
-                btc_usd_convertor=self.btc_usd_convertor_strategy,
             ),
             api_key=request.api_key,
             user_repository=self.user_repository,
@@ -94,31 +100,36 @@ class BitcoinCore:
     def make_transaction(self, request: MakeTransactionRequest) -> CoreResponse:
         handler = HasUserHandler(
             next_handler=HasWalletHandler(
-                next_handler=HasWalletHandler(
-                    next_handler=TransactionValidationHandler(
-                        next_handler=MakeTransactionHandler(
-                            next_handler=SaveTransactionHandler(
-                                next_handler=NoHandler(),
-                                first_address=request.first_wallet_address,
-                                second_address=request.second_wallet_address,
+                next_handler=WalletBelongsToUserHandler(
+                    next_handler=HasWalletHandler(
+                        next_handler=TransactionValidationHandler(
+                            next_handler=MakeTransactionHandler(
+                                next_handler=SaveTransactionHandler(
+                                    next_handler=NoHandler(),
+                                    first_address=request.first_wallet_address,
+                                    second_address=request.second_wallet_address,
+                                    btc_amount=request.btc_amount,
+                                    wallet_repository=self.wallet_repository,
+                                    transactions_repository=self.transactions_repository,
+                                    statistics_repository=self.statistics_repository,
+                                    statistics_observer=StatisticsObserver(),
+                                    transaction_fee_strategy=self.transaction_fee_strategy,
+                                ),
+                                first_wallet_address=request.first_wallet_address,
+                                second_wallet_address=request.second_wallet_address,
                                 btc_amount=request.btc_amount,
                                 wallet_repository=self.wallet_repository,
-                                transactions_repository=self.transactions_repository,
-                                statistics_repository=self.statistics_repository,
-                                statistics_observer=StatisticsObserver(),
                                 transaction_fee_strategy=self.transaction_fee_strategy,
                             ),
-                            first_wallet_address=request.first_wallet_address,
-                            second_wallet_address=request.second_wallet_address,
+                            address=request.first_wallet_address,
                             btc_amount=request.btc_amount,
                             wallet_repository=self.wallet_repository,
-                            transaction_fee_strategy=self.transaction_fee_strategy,
                         ),
-                        address=request.first_wallet_address,
-                        btc_amount=request.btc_amount,
+                        address=request.second_wallet_address,
                         wallet_repository=self.wallet_repository,
                     ),
-                    address=request.second_wallet_address,
+                    address=request.first_wallet_address,
+                    api_key=request.api_key,
                     wallet_repository=self.wallet_repository,
                 ),
                 address=request.first_wallet_address,
@@ -148,10 +159,15 @@ class BitcoinCore:
 
         handler = HasUserHandler(
             next_handler=HasWalletHandler(
-                next_handler=GetWalletTransactionsHandler(
-                    next_handler=NoHandler(),
-                    transactions_repository=self.transactions_repository,
+                next_handler=WalletBelongsToUserHandler(
+                    next_handler=GetWalletTransactionsHandler(
+                        next_handler=NoHandler(),
+                        transactions_repository=self.transactions_repository,
+                        address=request.address,
+                    ),
                     address=request.address,
+                    api_key=request.api_key,
+                    wallet_repository=self.wallet_repository,
                 ),
                 address=request.address,
                 wallet_repository=self.wallet_repository,

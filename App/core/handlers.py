@@ -318,6 +318,24 @@ class GetStatisticsHandler(IHandle):
         )
 
 
+@dataclass
+class WalletBelongsToUserHandler(IHandle):
+    next_handler: IHandle
+    wallet_repository: IWalletRepository
+    address: str
+    api_key: str
+
+    def handle(self) -> CoreResponse:
+        wallet = self.wallet_repository.get_wallet(self.address)
+        if wallet is None:
+            return CoreResponse(status_code=status.INVALID_WALLET)
+
+        if self.api_key != wallet.api_key:
+            return CoreResponse(status_code=status.NOT_YOUR_WALLET)
+
+        return self.next_handler.handle()
+
+
 class NoHandler(IHandle):
     def handle(self) -> CoreResponse:
         return CoreResponse()

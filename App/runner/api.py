@@ -1,10 +1,11 @@
 import sqlite3
+from sqlite3 import Connection
 
 from fastapi import Depends, FastAPI, Response
 
 from App.core import status
 from App.core.bitcoin_core import BitcoinCore
-from App.core.btc_usd import default_btc_usd_convertor
+from App.infra.btc_usd import default_btc_usd_convertor
 from App.core.constants import HTTP_DICT
 from App.core.core_requests import (
     CreateWalletRequest,
@@ -27,10 +28,22 @@ from App.infra.strategies import (
 )
 
 app = FastAPI()
-connection = sqlite3.connect("App/infra/database.db", check_same_thread=False)
+
+
+class GetConnection:
+    connection = None
+
+    def get_connection(self) -> Connection:
+        if self.connection is None:
+            self.connection = sqlite3.connect("App/infra/database.db", check_same_thread=False)
+        return self.connection
+
+
+get_connection = GetConnection()
 
 
 def get_core() -> BitcoinCore:
+    connection = get_connection.get_connection()
     return BitcoinCore(
         user_repository=SQLiteUserRepository(connection=connection),
         wallet_repository=SQLiteWalletRepository(connection=connection),

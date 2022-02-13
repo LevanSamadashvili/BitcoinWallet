@@ -1,9 +1,9 @@
 import unittest
 
 from starlette.responses import Response
-
+from fastapi.testclient import TestClient
 from App.core.bitcoin_core import BitcoinCore
-from App.core.btc_usd import default_btc_usd_convertor
+from App.infra.btc_usd import default_btc_usd_convertor
 from App.infra.repositories.statistics_repository import InMemoryStatisticsRepository
 from App.infra.repositories.transactions_repository import (
     InMemoryTransactionsRepository,
@@ -15,7 +15,7 @@ from App.infra.strategies import (
     default_api_key_generator,
     default_transaction_fee,
 )
-from App.runner.api import register_user
+from App.runner.api import register_user, get_core, app
 
 
 def get_in_memory_core() -> BitcoinCore:
@@ -31,10 +31,18 @@ def get_in_memory_core() -> BitcoinCore:
     )
 
 
+app.dependency_overrides[get_core] = get_in_memory_core
+
+client = TestClient(app)
+
+
 class TestApi(unittest.TestCase):
     def setUp(self) -> None:
         self.in_memory_core = get_in_memory_core()
 
     def test_register_user(self) -> None:
-        response = register_user(response=Response(), bitcoin_core=self.in_memory_core)
+        response = client.post(
+            "/users",
+        )
         print(response)
+        assert response.status_code == 201
