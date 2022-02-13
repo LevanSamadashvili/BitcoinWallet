@@ -1,6 +1,7 @@
 import unittest
 from dataclasses import dataclass
 from typing import Callable
+from unittest import mock
 from unittest.mock import MagicMock
 
 from App.core import status
@@ -81,6 +82,10 @@ class TestHandlers(unittest.TestCase):
         assert isinstance(response, RegisterUserResponse)
         assert self.user_repository.has_user(api_key=response.api_key)
 
+    @mock.patch(
+        "App.infra.repositories.user_repository.InMemoryUserRepository.create_user",
+        mock.MagicMock(return_value=False),
+    )
     def test_should_not_create_user(self) -> None:
         handler = CreateUserHandler(
             next_handler=NoHandler(),
@@ -88,7 +93,6 @@ class TestHandlers(unittest.TestCase):
             api_key_generator_strategy=default_api_key_generator,
         )
 
-        self.user_repository.create_user = MagicMock(return_value=False)
         response = handler.handle()
         assert response.status_code == status.USER_REGISTRATION_ERROR
 
@@ -165,9 +169,11 @@ class TestHandlers(unittest.TestCase):
         assert response.balance_usd == btc_usd_convertor(INITIAL_BITCOINS_WALLET)
         assert self.wallet_repository.has_wallet(address=address_generator())
 
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.create_wallet",
+        mock.MagicMock(return_value=False),
+    )
     def test_should_not_create_wallet(self) -> None:
-        self.wallet_repository.create_wallet = MagicMock(return_value=False)
-
         handler = CreateWalletHandler(
             next_handler=NoHandler(),
             api_key="api_key",
@@ -285,9 +291,11 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.INVALID_WALLET
 
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.withdraw_btc",
+        MagicMock(return_value=False),
+    )
     def test_should_not_make_transaction_first_cant_pay(self) -> None:
-        self.wallet_repository.withdraw_btc = MagicMock(return_value=False)
-
         first_wallet_address = "first_address"
         second_wallet_address = "second_address"
 
@@ -316,9 +324,11 @@ class TestHandlers(unittest.TestCase):
     def test_should_make_transaction(self) -> None:
         pass
 
+    @mock.patch(
+        "App.infra.repositories.statistics_repository.InMemoryStatisticsRepository.get_statistics",
+        MagicMock(return_value=None),
+    )
     def test_cant_get_statistics(self) -> None:
-        self.statistics_repository.get_statistics = MagicMock(return_value=None)
-
         handler = GetStatisticsHandler(
             next_handler=NoHandler(), statistics_repository=self.statistics_repository
         )
@@ -326,10 +336,11 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.FETCH_STATISTICS_UNSUCCESSFUL
 
+    @mock.patch(
+        "App.infra.repositories.statistics_repository.InMemoryStatisticsRepository.get_statistics",
+        MagicMock(return_value=Statistics(num_transactions=11, profit=11)),
+    )
     def test_can_get_statistics(self) -> None:
-        statistics = Statistics(num_transactions=11, profit=11)
-        self.statistics_repository.get_statistics = MagicMock(return_value=statistics)
-
         handler = GetStatisticsHandler(
             next_handler=NoHandler(), statistics_repository=self.statistics_repository
         )
@@ -352,10 +363,11 @@ class TestHandlers(unittest.TestCase):
         handler.handle()
         assert self.test_handler.was_called
 
+    @mock.patch(
+        "App.infra.repositories.transactions_repository.InMemoryTransactionsRepository.get_wallet_transactions",
+        MagicMock(return_value=None),
+    )
     def test_cant_get_wallet_transactions(self) -> None:
-        self.transactions_repository.get_wallet_transactions = MagicMock(
-            return_value=None
-        )
         handler = GetWalletTransactionsHandler(
             next_handler=NoHandler(),
             transactions_repository=self.transactions_repository,
@@ -364,13 +376,19 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.FETCH_TRANSACTIONS_UNSUCCESSFUL
 
+    @mock.patch(
+        "App.infra.repositories.transactions_repository.InMemoryTransactionsRepository.get_wallet_transactions",
+        MagicMock(
+            return_value=[
+                Transaction(first_address="ad1", second_address="ad2", amount=1.1)
+            ]
+        ),
+    )
     def test_can_get_wallet_transactions(self) -> None:
         transactions: list[Transaction] = []
         transaction = Transaction(first_address="ad1", second_address="ad2", amount=1.1)
         transactions.append(transaction)
-        self.transactions_repository.get_wallet_transactions = MagicMock(
-            return_value=transactions
-        )
+
         handler = GetWalletTransactionsHandler(
             next_handler=NoHandler(),
             transactions_repository=self.transactions_repository,
@@ -381,8 +399,11 @@ class TestHandlers(unittest.TestCase):
         assert isinstance(response, GetWalletTransactionsResponse)
         assert response.transactions == transactions
 
+    @mock.patch(
+        "App.infra.repositories.transactions_repository.InMemoryTransactionsRepository.get_all_transactions",
+        MagicMock(return_value=None),
+    )
     def test_cant_get_transactions(self) -> None:
-        self.transactions_repository.get_all_transactions = MagicMock(return_value=None)
         handler = GetTransactionHandler(
             next_handler=NoHandler(),
             transactions_repository=self.transactions_repository,
@@ -390,13 +411,19 @@ class TestHandlers(unittest.TestCase):
         response = handler.handle()
         assert response.status_code == status.FETCH_TRANSACTIONS_UNSUCCESSFUL
 
+    @mock.patch(
+        "App.infra.repositories.transactions_repository.InMemoryTransactionsRepository.get_all_transactions",
+        MagicMock(
+            return_value=[
+                Transaction(first_address="ad1", second_address="ad2", amount=1.1)
+            ]
+        ),
+    )
     def test_can_get_transactions(self) -> None:
         transactions: list[Transaction] = []
         transaction = Transaction(first_address="ad1", second_address="ad2", amount=1.1)
         transactions.append(transaction)
-        self.transactions_repository.get_all_transactions = MagicMock(
-            return_value=transactions
-        )
+
         handler = GetTransactionHandler(
             next_handler=NoHandler(),
             transactions_repository=self.transactions_repository,
@@ -406,8 +433,11 @@ class TestHandlers(unittest.TestCase):
         assert isinstance(response, GetTransactionsResponse)
         assert response.transactions == transactions
 
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
+        MagicMock(return_value=None),
+    )
     def test_cant_save_transaction_invalid_wallet(self) -> None:
-        self.wallet_repository.get_wallet = MagicMock(return_value=None)
         handler = SaveTransactionHandler(
             next_handler=NoHandler(),
             transactions_repository=self.transactions_repository,
@@ -419,12 +449,15 @@ class TestHandlers(unittest.TestCase):
             statistics_observer=StatisticsObserver(),
             transaction_fee_strategy=default_transaction_fee,
         )
+
         response = handler.handle()
         assert response.status_code == status.INVALID_WALLET
 
+    @mock.patch(
+        "App.infra.repositories.wallet_repository.InMemoryWalletRepository.get_wallet",
+        MagicMock(return_value=Wallet(address="1", api_key="1", balance_btc=10.0)),
+    )
     def test_should_save_transaction(self) -> None:
-        wallet = Wallet(address="1", api_key="1", balance_btc=10.0)
-        self.wallet_repository.get_wallet = MagicMock(return_value=wallet)
         handler = SaveTransactionHandler(
             next_handler=NoHandler(),
             transactions_repository=self.transactions_repository,
