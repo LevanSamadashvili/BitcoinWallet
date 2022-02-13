@@ -146,14 +146,18 @@ class BitcoinCore:
         self, request: GetWalletTransactionsRequest
     ) -> CoreResponse:
 
-        handler = HasWalletHandler(
-            next_handler=GetWalletTransactionsHandler(
-                next_handler=NoHandler(),
-                transactions_repository=self.transactions_repository,
+        handler = HasUserHandler(
+            next_handler=HasWalletHandler(
+                next_handler=GetWalletTransactionsHandler(
+                    next_handler=NoHandler(),
+                    transactions_repository=self.transactions_repository,
+                    address=request.address,
+                ),
                 address=request.address,
+                wallet_repository=self.wallet_repository,
             ),
-            address=request.address,
-            wallet_repository=self.wallet_repository,
+            api_key=request.api_key,
+            user_repository=self.user_repository,
         )
         return handler.handle()
 
