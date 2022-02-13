@@ -20,7 +20,6 @@ class InMemoryStatisticsRepository(IStatisticsRepository):
 @dataclass
 class SQLiteStatisticsRepository(IStatisticsRepository):
     connection: Connection
-    cursor: Cursor
 
     def get_statistics(self) -> Optional[Statistics]:
         for (num_transactions, profit) in self.cursor.execute(
@@ -30,9 +29,10 @@ class SQLiteStatisticsRepository(IStatisticsRepository):
         return None
 
     def add_statistic(self, num_new_transactions: int, profit: float) -> None:
+        cursor = self.connection.cursor()
         current_statistics = self.get_statistics()
         if current_statistics is None:
-            self.cursor.execute(
+            cursor.execute(
                 "INSERT INTO statistics (num_transactions, profit) VALUES (?, ?)",
                  (num_new_transactions, profit),
             )
@@ -42,7 +42,8 @@ class SQLiteStatisticsRepository(IStatisticsRepository):
             current_statistics.num_transactions + num_new_transactions
         )
         updated_profit = current_statistics.profit + profit
-        self.cursor.execute(
+        cursor = self.connection.cursor()
+        cursor.execute(
             "UPDATE statistics SET num_transactions = ?, profit = ?",
             (updated_num_transactions, updated_profit),
         )

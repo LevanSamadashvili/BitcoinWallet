@@ -40,12 +40,12 @@ class InMemoryTransactionsRepository(ITransactionsRepository):
 @dataclass
 class SQLiteTransactionsRepository(ITransactionsRepository):
     connection: Connection
-    cursor: Cursor
 
     def add_transaction(
         self, first_address: str, second_address: str, amount: float
     ) -> bool:
-        rows_modified = self.cursor.execute(
+        cursor = self.connection.cursor()
+        rows_modified = cursor.execute(
             "INSERT INTO transactions (first_address, second_address, amount) VALUES (?, ?, ?)",
             (first_address, second_address, amount),
         ).rowcount
@@ -53,8 +53,9 @@ class SQLiteTransactionsRepository(ITransactionsRepository):
         return rows_modified > 0
 
     def get_all_transactions(self) -> Optional[list[Transaction]]:
+        cursor = self.connection.cursor()
         result_set = []
-        for (first_address, second_address, amount) in self.cursor.execute(
+        for (first_address, second_address, amount) in cursor.execute(
             "SELECT * FROM transactions"
         ):
             result_set.append(
@@ -68,7 +69,8 @@ class SQLiteTransactionsRepository(ITransactionsRepository):
 
     def get_wallet_transactions(self, address: str) -> Optional[list[Transaction]]:
         result_set = []
-        for (first_address, second_address, amount) in self.cursor.execute(
+        cursor = self.connection.cursor()
+        for (first_address, second_address, amount) in cursor.execute(
             "SELECT * FROM transactions WHERE first_address = ? OR second_address = ?",
             (address, address),
         ):

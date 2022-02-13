@@ -22,16 +22,17 @@ class InMemoryUserRepository(IUserRepository):
 @dataclass
 class SQLiteUserRepository(IUserRepository):
     connection: Connection
-    cursor: Cursor
 
     def create_user(self, api_key: str) -> bool:
-        rows_modified = self.cursor.execute(
+        cursor = self.connection.cursor()
+        rows_modified = cursor.execute(
             "INSERT INTO users (api_key) VALUES (?)", (api_key,)
         ).rowcount
         self.connection.commit()
         return rows_modified > 0
 
     def has_user(self, api_key: str) -> bool:
-        self.cursor.execute("SELECT * from users WHERE api_key = ?;", (api_key,))
-        result_set = self.cursor.fetchall()
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * from users WHERE api_key = ?;", (api_key,))
+        result_set = cursor.fetchall()
         return len(result_set) > 0

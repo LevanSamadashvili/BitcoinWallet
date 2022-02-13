@@ -1,12 +1,10 @@
 from typing import Protocol
 
 
-class IUserRepository(Protocol):
+class IUserRepository:
     def create_user(self, api_key: str) -> bool:
         pass
 
     def has_user(self, api_key: str) -> bool:
         pass
 
-    def is_admin(self, api_key: str) -> bool:
-        pass

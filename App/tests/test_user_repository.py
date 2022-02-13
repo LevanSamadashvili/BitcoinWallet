@@ -15,8 +15,7 @@ class TestUserRepository(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.connection = sqlite3.connect("test_database.db", check_same_thread=False)
         cls.cursor = cls.connection.cursor()
-        cls.user_repository = SQLiteUserRepository()
-        cls.user_repository.cursor = cls.cursor
+        cls.user_repository = SQLiteUserRepository(connection=cls.connection)
         cls.user_repository.connection = cls.connection
         cls.test_api_key = "2"
 
@@ -36,14 +35,7 @@ class TestUserRepository(unittest.TestCase):
         self.connection.commit()
         assert self.user_repository.has_user(self.test_api_key)
 
-    def test_has_user_yes(self) -> None:
-        self.cursor.execute(
-            "INSERT INTO users (api_key) VALUES (?)", (self.test_api_key,)
-        ).rowcount
-        self.connection.commit()
-        assert self.user_repository.has_user(self.test_api_key)
-
-    def test_has_user_yes(self) -> None:
+    def test_has_user_not(self) -> None:
         assert not self.user_repository.has_user(self.test_api_key)
 
 

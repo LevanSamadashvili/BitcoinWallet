@@ -15,14 +15,12 @@ class TestTransactionsRepository(unittest.TestCase):
     first_api_key: str
     second_api_key: str
 
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.connection = sqlite3.connect("test_database.db", check_same_thread=False)
         cls.cursor = cls.connection.cursor()
-        cls.transactions_repository = SQLiteTransactionsRepository()
-        cls.transactions_repository.cursor = cls.cursor
-        cls.transactions_repository.connection = cls.connection
+        cls.transactions_repository = SQLiteTransactionsRepository(connection=sqlite3.connect("test_database.db", check_same_thread=False))
+        cls.cursor = cls.transactions_repository.connection.cursor()
         cls.first_address = "111"
         cls.second_address = "222"
         cls.first_api_key = "1"
