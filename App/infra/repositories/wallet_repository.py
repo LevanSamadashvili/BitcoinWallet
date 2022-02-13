@@ -45,9 +45,11 @@ class InMemoryWalletRepository(IWalletRepository):
         return self.wallets[address]
 
 
-@dataclass
 class SQLiteWalletRepository(IWalletRepository):
     connection: Connection
+
+    def __init__(self, connection: Connection):
+        self.connection = connection
 
     def create_wallet(self, address: str, api_key: str) -> bool:
         cursor = self.connection.cursor()
