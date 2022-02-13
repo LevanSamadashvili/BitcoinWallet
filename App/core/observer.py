@@ -9,5 +9,5 @@ class StatisticsObserver:
         statistics_repository: IStatisticsRepository,
     ) -> None:
         statistics_repository.add_statistic(
-            num_new_transactions=1, profit=transaction_fee * btc_amount
+            num_new_transactions=1, profit=transaction_fee * btc_amount / 100
         )
