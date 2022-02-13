@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from sqlite3 import Connection, Cursor
+from sqlite3 import Connection
 
 from App.core.models.user import User
 from App.core.repository_interfaces.user_repository import IUserRepository

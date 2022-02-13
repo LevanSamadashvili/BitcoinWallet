@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from sqlite3 import Connection, Cursor
+from sqlite3 import Connection
 from typing import Optional
 
 from App.core.models.transaction import Transaction

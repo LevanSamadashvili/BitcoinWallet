@@ -19,7 +19,9 @@ class TestTransactionsRepository(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.connection = sqlite3.connect("test_database.db", check_same_thread=False)
         cls.cursor = cls.connection.cursor()
-        cls.transactions_repository = SQLiteTransactionsRepository(connection=sqlite3.connect("test_database.db", check_same_thread=False))
+        cls.transactions_repository = SQLiteTransactionsRepository(
+            connection=sqlite3.connect("test_database.db", check_same_thread=False)
+        )
         cls.cursor = cls.transactions_repository.connection.cursor()
         cls.first_address = "111"
         cls.second_address = "222"
@@ -51,22 +53,34 @@ class TestTransactionsRepository(unittest.TestCase):
         self.connection.commit()
 
     def test_add_transactions_accepted(self) -> None:
-        self.transactions_repository.add_transaction(self.first_address, self.second_address, 5.0)
-        result_set = self.cursor.execute("SELECT * FROM transactions WHERE first_address = ? AND second_address = ?",
-                            (self.first_address, self.second_address)).fetchall()
+        self.transactions_repository.add_transaction(
+            self.first_address, self.second_address, 5.0
+        )
+        result_set = self.cursor.execute(
+            "SELECT * FROM transactions WHERE first_address = ? AND second_address = ?",
+            (self.first_address, self.second_address),
+        ).fetchall()
         assert len(result_set) > 0
         address1, address2, amount = result_set[0]
         assert amount == 5.0
 
     def test_add_transactions_failed(self) -> None:
-        self.transactions_repository.add_transaction(self.first_address, self.second_address, 5.0)
-        result_set = self.cursor.execute("SELECT * FROM transactions WHERE first_address = ? AND second_address = ?",
-                            (self.first_address, "333")).fetchall()
+        self.transactions_repository.add_transaction(
+            self.first_address, self.second_address, 5.0
+        )
+        result_set = self.cursor.execute(
+            "SELECT * FROM transactions WHERE first_address = ? AND second_address = ?",
+            (self.first_address, "333"),
+        ).fetchall()
         assert len(result_set) == 0
 
     def test_get_all_transactions(self) -> None:
-        self.transactions_repository.add_transaction(self.first_address, self.second_address, 5.0)
-        self.transactions_repository.add_transaction(self.second_address, self.first_address, 2.0)
+        self.transactions_repository.add_transaction(
+            self.first_address, self.second_address, 5.0
+        )
+        self.transactions_repository.add_transaction(
+            self.second_address, self.first_address, 2.0
+        )
         result_set = self.transactions_repository.get_all_transactions()
         assert result_set is not None
         assert len(result_set) == 2
@@ -77,31 +91,28 @@ class TestTransactionsRepository(unittest.TestCase):
         assert len(result_set) == 0
 
     def test_get_wallet_transactions(self) -> None:
-        self.transactions_repository.add_transaction(self.first_address, self.second_address, 5.0)
-        self.transactions_repository.add_transaction(self.second_address, self.first_address, 2.0)
+        self.transactions_repository.add_transaction(
+            self.first_address, self.second_address, 5.0
+        )
+        self.transactions_repository.add_transaction(
+            self.second_address, self.first_address, 2.0
+        )
         self.cursor.execute(
             "INSERT INTO wallets (address, api_key, balance) VALUES (?, ?, ?)",
             ("NNN", self.second_api_key, 10),
         ).rowcount
         self.connection.commit()
         self.transactions_repository.add_transaction(self.second_address, "NNN", 10.0)
-        result_set = self.transactions_repository.get_wallet_transactions(self.first_address)
+        result_set = self.transactions_repository.get_wallet_transactions(
+            self.first_address
+        )
         assert result_set is not None
         assert len(result_set) == 2
 
     def test_get_wallet_transaction_none(self) -> None:
         self.transactions_repository.add_transaction(self.second_address, "NNN", 10.0)
-        result_set = self.transactions_repository.get_wallet_transactions(self.first_address)
+        result_set = self.transactions_repository.get_wallet_transactions(
+            self.first_address
+        )
         assert result_set is not None
         assert len(result_set) == 0
-
-
-
-
-
-
-
-
-
-
-

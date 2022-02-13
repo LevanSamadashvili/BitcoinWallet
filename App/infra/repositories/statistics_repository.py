@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from sqlite3 import Connection, Cursor
+from sqlite3 import Connection
 from typing import Optional
 
 from App.core.models.statistics import Statistics
@@ -26,9 +26,7 @@ class SQLiteStatisticsRepository(IStatisticsRepository):
 
     def get_statistics(self) -> Optional[Statistics]:
         cursor = self.connection.cursor()
-        for (num_transactions, profit) in cursor.execute(
-            "SELECT * FROM statistics"
-        ):
+        for (num_transactions, profit) in cursor.execute("SELECT * FROM statistics"):
             return Statistics(num_transactions=num_transactions, profit=profit)
         return None
 
@@ -38,7 +36,7 @@ class SQLiteStatisticsRepository(IStatisticsRepository):
         if current_statistics is None:
             cursor.execute(
                 "INSERT INTO statistics (num_transactions, profit) VALUES (?, ?)",
-                 (num_new_transactions, profit),
+                (num_new_transactions, profit),
             )
             self.connection.commit()
             return

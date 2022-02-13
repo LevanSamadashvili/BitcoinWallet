@@ -24,7 +24,9 @@ class TestUserRepository(unittest.TestCase):
 
     def test_create_user(self) -> None:
         self.user_repository.create_user(api_key=self.test_api_key)
-        self.cursor.execute("SELECT * from users WHERE api_key = ?;", (self.test_api_key,))
+        self.cursor.execute(
+            "SELECT * from users WHERE api_key = ?;", (self.test_api_key,)
+        )
         result_set = self.cursor.fetchall()
         assert len(result_set) > 0
 
@@ -37,7 +39,3 @@ class TestUserRepository(unittest.TestCase):
 
     def test_has_user_not(self) -> None:
         assert not self.user_repository.has_user(self.test_api_key)
-
-
-
-

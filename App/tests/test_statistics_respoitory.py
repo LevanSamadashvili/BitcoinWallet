@@ -15,7 +15,9 @@ class TestStatisticsRepository(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.connection = sqlite3.connect("test_database.db", check_same_thread=False)
         cls.cursor = cls.connection.cursor()
-        cls.statistics_repository = SQLiteStatisticsRepository(connection=cls.connection)
+        cls.statistics_repository = SQLiteStatisticsRepository(
+            connection=cls.connection
+        )
         cls.test_api_key = "2"
 
     def setUp(self) -> None:
