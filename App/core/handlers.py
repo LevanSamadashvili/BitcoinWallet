@@ -181,9 +181,6 @@ class MakeTransactionHandler(IHandle):
             address=self.second_wallet_address
         )
 
-        if first_wallet is None or second_wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
-
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
         first_successful = self.wallet_repository.withdraw_btc(
@@ -221,14 +218,7 @@ class SaveTransactionHandler(IHandle):
 
     def handle(self) -> CoreResponse:
         first_wallet = self.wallet_repository.get_wallet(address=self.first_address)
-
-        if first_wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
-
         second_wallet = self.wallet_repository.get_wallet(address=self.second_address)
-
-        if second_wallet is None:
-            return CoreResponse(status_code=status.INVALID_WALLET)
 
         transaction_fee = self.transaction_fee_strategy(first_wallet, second_wallet)
 
