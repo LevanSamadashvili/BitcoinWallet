@@ -50,26 +50,21 @@ class TestApi(unittest.TestCase):
     def test_get_transactions(self) -> None:
         in_memory_core = get_in_memory_core()
         in_memory_core.user_repository.create_user("user1")
-        response = client.get(
-            "/transactions",
-            headers={"api-key": "user1"}
-        )
+        response = client.get("/transactions", headers={"api-key": "user1"})
         assert response.status_code == 200
-        assert len(response.json()['transactions']) == 0
+        assert len(response.json()["transactions"]) == 0
 
-        in_memory_core.transactions_repository.add_transaction('address1', 'wallet2', 4.0)
-        in_memory_core.transactions_repository.add_transaction('wallet2', 'address1', 2.0)
-        response = client.get(
-            "/transactions",
-            headers={"api-key": "user1"}
+        in_memory_core.transactions_repository.add_transaction(
+            "address1", "wallet2", 4.0
         )
+        in_memory_core.transactions_repository.add_transaction(
+            "wallet2", "address1", 2.0
+        )
+        response = client.get("/transactions", headers={"api-key": "user1"})
         assert response.status_code == 200
-        assert len(response.json()['transactions']) == 2
+        assert len(response.json()["transactions"]) == 2
 
-        response = client.get(
-            "/transactions",
-            headers={"api-key": "user2"}
-        )
+        response = client.get("/transactions", headers={"api-key": "user2"})
         assert response.status_code == 404
 
     def test_get_wallet_transactions(self) -> None:
@@ -78,33 +73,34 @@ class TestApi(unittest.TestCase):
         in_memory_core.wallet_repository.create_wallet("wallet1", "user1")
         response = client.get(
             "/wallets/wallet1/transactions",
-            headers={"api-key": "user1", "address": "wallet1"}
+            headers={"api-key": "user1", "address": "wallet1"},
         )
         assert response.status_code == 200
-        assert len(response.json()['transactions']) == 0
+        assert len(response.json()["transactions"]) == 0
 
-        in_memory_core.transactions_repository.add_transaction('wallet1', 'wallet2', 4.0)
-        in_memory_core.transactions_repository.add_transaction('wallet3', 'wallet2', 4.0)
+        in_memory_core.transactions_repository.add_transaction(
+            "wallet1", "wallet2", 4.0
+        )
+        in_memory_core.transactions_repository.add_transaction(
+            "wallet3", "wallet2", 4.0
+        )
         response = client.get(
             "/wallets/wallet1/transactions",
-            headers={"api-key": "user1", "address": "wallet1"}
+            headers={"api-key": "user1", "address": "wallet1"},
         )
         assert response.status_code == 200
-        assert len(response.json()['transactions']) == 1
+        assert len(response.json()["transactions"]) == 1
 
         response = client.get(
             "/wallets/wallet2/transactions",
-            headers={"api-key": "user1", "address": "wallet2"}
+            headers={"api-key": "user1", "address": "wallet2"},
         )
         assert response.status_code == 403
 
     def test_get_statistics(self) -> None:
         response = client.get(
-            "/statistics",
-            headers={"admin-api-key": constants.ADMIN_API_KEY}
+            "/statistics", headers={"admin-api-key": constants.ADMIN_API_KEY}
         )
         assert response.status_code == 200
-        assert response.json()['total_num_transactions'] == 0
-        assert response.json()['platform_profit'] == 0
-
-
+        assert response.json()["total_num_transactions"] == 0
+        assert response.json()["platform_profit"] == 0
