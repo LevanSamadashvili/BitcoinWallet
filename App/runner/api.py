@@ -60,7 +60,7 @@ def register_user(
 
     register_user_response = bitcoin_core.register_user(RegisterUserRequest())
     response.status_code = HTTP_DICT[register_user_response.status_code]
-    return register_user_response
+    return register_user_response.response_content
 
 
 @app.post(
@@ -91,7 +91,7 @@ def create_wallet(
         CreateWalletRequest(api_key=api_key)
     )
     response.status_code = HTTP_DICT[create_wallet_response.status_code]
-    return create_wallet_response
+    return create_wallet_response.response_content
 
 
 @app.get("/wallets/{address}")
@@ -110,7 +110,7 @@ def get_balance(
         GetBalanceRequest(api_key=api_key, address=address)
     )
     response.status_code = HTTP_DICT[get_balance_response.status_code]
-    return get_balance_response
+    return get_balance_response.response_content
 
 
 @app.post("/transactions")
@@ -139,7 +139,7 @@ def make_transaction(
         )
     )
     response.status_code = HTTP_DICT[make_transaction_response.status_code]
-    return make_transaction_response
+    return make_transaction_response.response_content
 
 
 @app.get("/transactions")
@@ -155,7 +155,7 @@ def get_transactions(
         GetTransactionsRequest(api_key=api_key)
     )
     response.status_code = HTTP_DICT[get_transactions_response.status_code]
-    return get_transactions_response
+    return get_transactions_response.response_content
 
 
 @app.get("/wallets/{address}/transactions")
@@ -175,7 +175,7 @@ def get_wallet_transactions(
     )
 
     response.status_code = HTTP_DICT[get_wallet_transactions_response.status_code]
-    return get_wallet_transactions_response
+    return get_wallet_transactions_response.response_content
 
 
 @app.get("/statistics")
@@ -193,4 +193,4 @@ def get_statistics(
         GetStatisticsRequest(api_key=admin_api_key)
     )
     response.status_code = HTTP_DICT[get_statistics_response.status_code]
-    return get_statistics_response
+    return get_statistics_response.response_content
