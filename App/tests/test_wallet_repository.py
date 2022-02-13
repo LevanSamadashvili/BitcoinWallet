@@ -1,7 +1,6 @@
 import sqlite3
 import unittest
 
-from App.infra.repositories.user_repository import SQLiteUserRepository
 from App.infra.repositories.wallet_repository import SQLiteWalletRepository
 
 
@@ -20,9 +19,7 @@ class TestWalletRepository(unittest.TestCase):
 
     def add_test_user(self) -> None:
         self.test_api_key = "test_api_key"
-        SQLiteUserRepository(self.connection, self.cursor).create_user(
-            api_key=self.test_api_key
-        )
+        self.cursor.execute("INSERT INTO users(api_key) VALUES (?)", (self.test_api_key,))
 
     def add_test_wallet(self) -> None:
         self.test_address = "test_add"
